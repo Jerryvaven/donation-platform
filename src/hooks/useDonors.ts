@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { fetchDonors } from '@/lib/api-client'
-import type { Donor } from '@/types'
+import type { Donor, FireDepartment, ProductDonation } from '@/types'
+// Re-export types so consumers can import from this hook module
+export type { Donor, FireDepartment, ProductDonation } from '@/types'
 
 export const useDonors = () => {
   const [donors, setDonors] = useState<Donor[]>([])

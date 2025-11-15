@@ -31,8 +31,9 @@ export const useDonorFilters = (donors: Donor[]) => {
           bValue = b.name.toLowerCase()
           break
         case 'total_donated':
-          aValue = a.total_donated
-          bValue = b.total_donated
+          // Map UI sort option 'total_donated' to actual donor field 'total_donated_value'
+          aValue = a.total_donated_value
+          bValue = b.total_donated_value
           break
         case 'created_at':
           aValue = new Date(a.created_at).getTime()
