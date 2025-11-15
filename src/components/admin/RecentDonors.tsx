@@ -4,15 +4,19 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FaSearch, FaSync, FaEye, FaEdit, FaTrash, FaCheckCircle, FaTimes } from 'react-icons/fa'
 import { createClient } from '@/lib/supabase-client'
+import { deleteDonation } from '@/lib/api-client'
 import DeleteConfirmModal from './DeleteConfirmModal'
 
 interface RecentProductDonation {
   id: string
   donorId: string
   donorName: string
+  productId: string
   productName: string
   productValue: number
+  fireDepartmentId: string | null
   fireDepartmentName: string
+  quantity: number
   city: string
   county: string
   date: string
@@ -74,36 +78,8 @@ export default function RecentDonors({ recentDonors, loading, onDataRefresh, onV
 
     setIsDeleting(true)
     try {
-      // Fetch donation details (including related product value) before deletion
-      const { data: productDonation, error: fetchError } = await supabase
-        .from('product_donations')
-        .select('donor_id, quantity, products(value)')
-        .eq('id', donationToDelete.id)
-        .single()
-
-      if (fetchError) throw fetchError
-
-      // Compute totals to decrement if we have the original donation
-      if (productDonation) {
-        const rawProduct = (productDonation as any).products
-        const productValue = Array.isArray(rawProduct)
-          ? (rawProduct[0]?.value ?? 0)
-          : (rawProduct?.value ?? 0)
-        const totalValue = parseFloat(productValue.toString()) * (productDonation as any).quantity
-
-        await supabase.rpc('decrement_donor_totals', {
-          donor_id: (productDonation as any).donor_id,
-          value_to_subtract: totalValue,
-          products_to_subtract: (productDonation as any).quantity
-        })
-      }
-
-      // Now delete the product donation row itself
-      const { error: deleteError } = await supabase
-        .from('product_donations')
-        .delete()
-        .eq('id', donationToDelete.id)
-      if (deleteError) throw deleteError
+      // Use API endpoint which handles donor deletion if no donations remain
+      await deleteDonation(donationToDelete.id)
 
       setMessage({ type: 'success', text: 'Product donation deleted successfully!' })
       setShowDeleteModal(false)

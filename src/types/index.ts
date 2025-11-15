@@ -65,9 +65,12 @@ export interface RecentProductDonation {
   id: string
   donorId: string
   donorName: string
+  productId: string
   productName: string
   productValue: number
+  fireDepartmentId: string | null
   fireDepartmentName: string
+  quantity: number
   city: string
   county: string
   date: string

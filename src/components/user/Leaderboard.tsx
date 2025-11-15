@@ -37,7 +37,10 @@ export default function Leaderboard() {
 
   // Filter donors by time period
   const filteredByTime = useMemo(() => {
-    if (timePeriod === 'all') return donors
+    // Filter out donors with zero donations
+    const validDonors = donors.filter(donor => donor.total_donated_value > 0)
+    
+    if (timePeriod === 'all') return validDonors
     
     const now = new Date()
     const cutoffDate = new Date()
@@ -48,7 +51,7 @@ export default function Leaderboard() {
       cutoffDate.setMonth(now.getMonth() - 1)
     }
     
-    return donors.map(donor => {
+    return validDonors.map(donor => {
       const recentDonations = donor.product_donations?.filter(pd => 
         new Date(pd.donation_date) >= cutoffDate
       ) || []

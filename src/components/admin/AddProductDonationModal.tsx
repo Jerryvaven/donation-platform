@@ -3,16 +3,19 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FaUserPlus, FaTimes, FaSync, FaCheckCircle } from 'react-icons/fa'
-import { fetchProducts, fetchFireDepartments, addDonation } from '@/lib/api-client'
+import { fetchProducts, fetchFireDepartments, addDonation, updateDonation } from '@/lib/api-client'
 import type { Product, FireDepartment } from '@/types'
 
 interface ProductDonation {
   id: string
   donorId: string
   donorName: string
+  productId: string
   productName: string
   productValue: number
+  fireDepartmentId: string | null
   fireDepartmentName: string
+  quantity: number
   city: string
   county: string
   date: string
@@ -74,7 +77,16 @@ export default function AddProductDonationModal({
       setDonorName(donation.donorName)
       setCity(donation.city)
       setCounty(donation.county)
+      setSelectedProduct(donation.productId)
+      setQuantity(donation.quantity.toString())
       setMatched(donation.status === 'MATCHED')
+      if (donation.fireDepartmentId) {
+        setSelectedFireDepartment(donation.fireDepartmentId)
+        setFireDepartmentSearch(donation.fireDepartmentName)
+      } else {
+        setSelectedFireDepartment('')
+        setFireDepartmentSearch('')
+      }
     } else if (mode === 'add') {
       // Reset form for add
       setDonorName('')
@@ -95,18 +107,27 @@ export default function AddProductDonationModal({
     setSaving(true)
 
     try {
-      await addDonation({
-        donorName,
-        city,
-        county,
-        address,
-        productId: selectedProduct,
-        quantity: parseInt(quantity),
-        matched,
-        fireDepartmentId: matched ? selectedFireDepartment : undefined
-      })
-
-      setMessage({ type: 'success', text: 'Product donation added successfully!' })
+      if (mode === 'edit' && donation) {
+        // Update existing donation (only matching status)
+        await updateDonation(donation.id, {
+          matched,
+          fire_department_id: matched ? selectedFireDepartment : undefined
+        })
+        setMessage({ type: 'success', text: 'Donation updated successfully!' })
+      } else {
+        // Add new donation
+        await addDonation({
+          donorName,
+          city,
+          county,
+          address,
+          productId: selectedProduct,
+          quantity: parseInt(quantity),
+          matched,
+          fireDepartmentId: matched ? selectedFireDepartment : undefined
+        })
+        setMessage({ type: 'success', text: 'Product donation added successfully!' })
+      }
 
       // Refresh data
       onDataRefresh()
@@ -116,16 +137,18 @@ export default function AddProductDonationModal({
         setShowAddDonorModal(false)
       }, 1500)
 
-      // Reset form
-      setDonorName('')
-      setCity('')
-      setCounty('')
-      setAddress('')
-      setSelectedProduct('')
-      setQuantity('1')
-      setMatched(false)
-      setSelectedFireDepartment('')
-      setFireDepartmentSearch('')
+      // Reset form only for add mode
+      if (mode === 'add') {
+        setDonorName('')
+        setCity('')
+        setCounty('')
+        setAddress('')
+        setSelectedProduct('')
+        setQuantity('1')
+        setMatched(false)
+        setSelectedFireDepartment('')
+        setFireDepartmentSearch('')
+      }
     } catch (error: any) {
       setMessage({ type: 'error', text: error.message || 'An error occurred' })
     } finally {
@@ -163,7 +186,7 @@ export default function AddProductDonationModal({
                   <FaUserPlus className="text-xl text-white" />
                 </motion.div>
                 <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                  Add Donation
+                  {mode === 'edit' ? 'Edit Donation' : mode === 'view' ? 'View Donation' : 'Add Donation'}
                 </h2>
               </div>
               <motion.button
@@ -219,7 +242,8 @@ export default function AddProductDonationModal({
                     value={donorName}
                     onChange={(e) => setDonorName(e.target.value)}
                     required
-                    className={`w-full px-4 py-2.5 ${darkMode ? 'bg-[#242424] border-[#333333] text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-lg focus:ring-2 ${darkMode ? 'focus:ring-[#3B82F6] focus:border-[#3B82F6]' : 'focus:ring-black focus:border-black'} transition-all outline-none`}
+                    disabled={mode === 'edit' || mode === 'view'}
+                    className={`w-full px-4 py-2.5 ${darkMode ? 'bg-[#242424] border-[#333333] text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-lg focus:ring-2 ${darkMode ? 'focus:ring-[#3B82F6] focus:border-[#3B82F6]' : 'focus:ring-black focus:border-black'} transition-all outline-none disabled:opacity-60 disabled:cursor-not-allowed`}
                     placeholder="Enter donor name"
                   />
                 </div>
@@ -233,7 +257,8 @@ export default function AddProductDonationModal({
                     id="city"
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
-                    className={`w-full px-4 py-2.5 ${darkMode ? 'bg-[#242424] border-[#333333] text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-lg focus:ring-2 ${darkMode ? 'focus:ring-[#3B82F6] focus:border-[#3B82F6]' : 'focus:ring-black focus:border-black'} transition-all outline-none`}
+                    disabled={mode === 'edit' || mode === 'view'}
+                    className={`w-full px-4 py-2.5 ${darkMode ? 'bg-[#242424] border-[#333333] text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-lg focus:ring-2 ${darkMode ? 'focus:ring-[#3B82F6] focus:border-[#3B82F6]' : 'focus:ring-black focus:border-black'} transition-all outline-none disabled:opacity-60 disabled:cursor-not-allowed`}
                     placeholder="City"
                   />
                 </div>
@@ -247,7 +272,8 @@ export default function AddProductDonationModal({
                     id="county"
                     value={county}
                     onChange={(e) => setCounty(e.target.value)}
-                    className={`w-full px-4 py-2.5 ${darkMode ? 'bg-[#242424] border-[#333333] text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-lg focus:ring-2 ${darkMode ? 'focus:ring-[#3B82F6] focus:border-[#3B82F6]' : 'focus:ring-black focus:border-black'} transition-all outline-none`}
+                    disabled={mode === 'edit' || mode === 'view'}
+                    className={`w-full px-4 py-2.5 ${darkMode ? 'bg-[#242424] border-[#333333] text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-lg focus:ring-2 ${darkMode ? 'focus:ring-[#3B82F6] focus:border-[#3B82F6]' : 'focus:ring-black focus:border-black'} transition-all outline-none disabled:opacity-60 disabled:cursor-not-allowed`}
                     placeholder="County"
                   />
                 </div>
@@ -261,7 +287,8 @@ export default function AddProductDonationModal({
                     id="address"
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
-                    className={`w-full px-4 py-2.5 ${darkMode ? 'bg-[#242424] border-[#333333] text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-lg focus:ring-2 ${darkMode ? 'focus:ring-[#3B82F6] focus:border-[#3B82F6]' : 'focus:ring-black focus:border-black'} transition-all outline-none`}
+                    disabled={mode === 'edit' || mode === 'view'}
+                    className={`w-full px-4 py-2.5 ${darkMode ? 'bg-[#242424] border-[#333333] text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-lg focus:ring-2 ${darkMode ? 'focus:ring-[#3B82F6] focus:border-[#3B82F6]' : 'focus:ring-black focus:border-black'} transition-all outline-none disabled:opacity-60 disabled:cursor-not-allowed`}
                     placeholder="Full address"
                   />
                 </div>
@@ -275,7 +302,8 @@ export default function AddProductDonationModal({
                     value={selectedProduct}
                     onChange={(e) => setSelectedProduct(e.target.value)}
                     required
-                    className={`w-full px-4 py-2.5 ${darkMode ? 'bg-[#242424] border-[#333333] text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-lg focus:ring-2 ${darkMode ? 'focus:ring-[#3B82F6] focus:border-[#3B82F6]' : 'focus:ring-black focus:border-black'} transition-all outline-none`}
+                    disabled={mode === 'edit' || mode === 'view'}
+                    className={`w-full px-4 py-2.5 ${darkMode ? 'bg-[#242424] border-[#333333] text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-lg focus:ring-2 ${darkMode ? 'focus:ring-[#3B82F6] focus:border-[#3B82F6]' : 'focus:ring-black focus:border-black'} transition-all outline-none disabled:opacity-60 disabled:cursor-not-allowed`}
                   >
                     <option value="">Select Product</option>
                     {products.map(product => (
@@ -297,7 +325,8 @@ export default function AddProductDonationModal({
                     onChange={(e) => setQuantity(e.target.value)}
                     min="1"
                     required
-                    className={`w-full px-4 py-2.5 ${darkMode ? 'bg-[#242424] border-[#333333] text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-lg focus:ring-2 ${darkMode ? 'focus:ring-[#3B82F6] focus:border-[#3B82F6]' : 'focus:ring-black focus:border-black'} transition-all outline-none`}
+                    disabled={mode === 'edit' || mode === 'view'}
+                    className={`w-full px-4 py-2.5 ${darkMode ? 'bg-[#242424] border-[#333333] text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-lg focus:ring-2 ${darkMode ? 'focus:ring-[#3B82F6] focus:border-[#3B82F6]' : 'focus:ring-black focus:border-black'} transition-all outline-none disabled:opacity-60 disabled:cursor-not-allowed`}
                     placeholder="1"
                   />
                 </div>
@@ -309,7 +338,8 @@ export default function AddProductDonationModal({
                   id="matched"
                   checked={matched}
                   onChange={(e) => setMatched(e.target.checked)}
-                  className={`w-5 h-5 ${darkMode ? 'text-[#3B82F6] bg-[#1E1E1E] border-[#333333] focus:ring-[#3B82F6]' : 'text-black bg-white border-gray-300 focus:ring-black'} rounded focus:ring-2 cursor-pointer`}
+                  disabled={mode === 'view'}
+                  className={`w-5 h-5 ${darkMode ? 'text-[#3B82F6] bg-[#1E1E1E] border-[#333333] focus:ring-[#3B82F6]' : 'text-black bg-white border-gray-300 focus:ring-black'} rounded focus:ring-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed`}
                 />
                 <label htmlFor="matched" className={`text-sm ${darkMode ? 'text-[#B3B3B3]' : 'text-gray-700'} font-medium cursor-pointer`}>
                   Match to Fire Department
@@ -331,8 +361,9 @@ export default function AddProductDonationModal({
                     id="fireDepartmentSearch"
                     value={fireDepartmentSearch}
                     onChange={(e) => setFireDepartmentSearch(e.target.value)}
+                    disabled={mode === 'view'}
                     placeholder="Search fire departments..."
-                    className={`w-full px-4 py-2.5 ${darkMode ? 'bg-[#242424] border-[#333333] text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-lg focus:ring-2 ${darkMode ? 'focus:ring-[#3B82F6] focus:border-[#3B82F6]' : 'focus:ring-black focus:border-black'} transition-all outline-none`}
+                    className={`w-full px-4 py-2.5 ${darkMode ? 'bg-[#242424] border-[#333333] text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-lg focus:ring-2 ${darkMode ? 'focus:ring-[#3B82F6] focus:border-[#3B82F6]' : 'focus:ring-black focus:border-black'} transition-all outline-none disabled:opacity-60 disabled:cursor-not-allowed`}
                   />
                   <div className={`max-h-48 overflow-y-auto border rounded-lg ${darkMode ? 'border-[#333333] bg-[#242424]' : 'border-gray-300 bg-white'}`}>
                     {fireDepartments
@@ -382,27 +413,29 @@ export default function AddProductDonationModal({
                   whileTap={{ scale: 0.98 }}
                   className={`flex-1 px-5 py-2.5 ${darkMode ? 'bg-[#242424] hover:bg-[#2A2A2A] text-[#B3B3B3]' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'} rounded-lg font-semibold transition-all duration-200`}
                 >
-                  Cancel
+                  {mode === 'view' ? 'Close' : 'Cancel'}
                 </motion.button>
-                <motion.button
-                  type="submit"
-                  disabled={saving}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className={`flex-1 px-5 py-2.5 ${darkMode ? 'bg-[#3B82F6] hover:bg-[#2563EB]' : 'bg-black hover:bg-gray-800'} text-white rounded-lg font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
-                >
-                  {saving ? (
-                    <>
-                      <FaSync className="animate-spin" />
-                      Adding...
-                    </>
-                  ) : (
-                    <>
-                      <FaCheckCircle />
-                      Add Donation
-                    </>
-                  )}
-                </motion.button>
+                {mode !== 'view' && (
+                  <motion.button
+                    type="submit"
+                    disabled={saving}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`flex-1 px-5 py-2.5 ${darkMode ? 'bg-[#3B82F6] hover:bg-[#2563EB]' : 'bg-black hover:bg-gray-800'} text-white rounded-lg font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
+                  >
+                    {saving ? (
+                      <>
+                        <FaSync className="animate-spin" />
+                        {mode === 'edit' ? 'Updating...' : 'Adding...'}
+                      </>
+                    ) : (
+                      <>
+                        <FaCheckCircle />
+                        {mode === 'edit' ? 'Update Donation' : 'Add Donation'}
+                      </>
+                    )}
+                  </motion.button>
+                )}
               </div>
             </form>
           </motion.div>
