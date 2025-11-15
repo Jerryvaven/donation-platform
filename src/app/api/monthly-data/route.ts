@@ -21,12 +21,24 @@ export async function GET(request: NextRequest) {
       }) || []
 
       const totalDonations = monthDonations.reduce((sum, d) => {
-        const value = d.products?.value || 0
-        return sum + (parseFloat(value.toString()) * d.quantity)
+        const products = d.products as any
+        let valueTotal = 0
+        if (Array.isArray(products)) {
+          valueTotal = products.reduce((acc: number, p: any) => acc + Number(p?.value || 0), 0)
+        } else if (products) {
+          valueTotal = Number(products.value || 0)
+        }
+        return sum + valueTotal * d.quantity
       }, 0)
       const totalMatched = monthDonations.reduce((sum, d) => {
-        const value = d.products?.value || 0
-        return d.matched ? sum + (parseFloat(value.toString()) * d.quantity) : sum
+        const products = d.products as any
+        let valueTotal = 0
+        if (Array.isArray(products)) {
+          valueTotal = products.reduce((acc: number, p: any) => acc + Number(p?.value || 0), 0)
+        } else if (products) {
+          valueTotal = Number(products.value || 0)
+        }
+        return d.matched ? sum + valueTotal * d.quantity : sum
       }, 0)
 
       return {
