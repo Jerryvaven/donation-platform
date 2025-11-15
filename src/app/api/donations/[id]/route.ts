@@ -3,11 +3,11 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createServerSupabaseClient()
-    const { id } = params
+    const { id } = await context.params
 
     const { error } = await supabase
       .from('product_donations')
@@ -34,12 +34,12 @@ export async function DELETE(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createServerSupabaseClient()
     const body = await request.json()
-    const { id } = params
+    const { id } = await context.params
 
     const { matched, fire_department_id } = body
 

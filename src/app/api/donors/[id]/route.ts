@@ -3,12 +3,12 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createServerSupabaseClient()
     const body = await request.json()
-    const { id } = params
+    const { id } = await context.params
 
     const { total_donated_value, total_products_donated, city, county, address } = body
 
