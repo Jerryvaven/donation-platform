@@ -1,4 +1,4 @@
-import type { Donor } from '@/hooks/useDonors'
+import type { Donor } from '@/types'
 
 interface DonorListItemProps {
   donor: Donor
