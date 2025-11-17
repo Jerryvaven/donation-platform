@@ -254,7 +254,16 @@ export default function AdminDashboard() {
       {/* Add Product Donation Modal */}
       <AddProductDonationModal
         showAddDonorModal={showAddDonorModal}
-        setShowAddDonorModal={setShowAddDonorModal}
+        setShowAddDonorModal={(show) => {
+          setShowAddDonorModal(show)
+          // Reset modal state when closing
+          if (!show) {
+            setTimeout(() => {
+              setModalMode('add')
+              setCurrentDonation(null)
+            }, 300) // Small delay to allow modal close animation
+          }
+        }}
         onDataRefresh={refreshData}
         mode={modalMode}
         donation={currentDonation}

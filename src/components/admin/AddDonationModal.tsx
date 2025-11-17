@@ -125,16 +125,26 @@ export default function AddProductDonationModal({
     e.preventDefault()
     setSaving(true)
 
+    // Capture mode and donation at the start to prevent state changes during async operations
+    const currentMode = mode
+    const currentDonation = donation
+
     try {
-      if (mode === 'edit' && donation) {
+      if (currentMode === 'edit' && currentDonation && currentDonation.id) {
         // Update existing donation
-        await updateDonation(donation.id, {
+        
+        await updateDonation(currentDonation.id, {
           product_id: selectedProduct,
           quantity: parseInt(quantity),
           matched,
           fire_department_id: matched ? selectedFireDepartment : undefined
         })
         setMessage({ type: 'success', text: 'Donation updated successfully!' })
+      } else if (currentMode === 'edit' && currentDonation && !currentDonation.id) {
+        // Error case: edit mode but no ID
+        setMessage({ type: 'error', text: 'Cannot update donation: missing ID' })
+        setSaving(false)
+        return
       } else {
         // Add new donation
         await addDonation({
