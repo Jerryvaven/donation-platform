@@ -19,6 +19,7 @@ import DonorTrends from '@/components/admin/DonorTrends'
 import RecentDonors from '@/components/admin/RecentDonors'
 import RecentActivity from '@/components/admin/RecentActivity'
 import AddProductDonationModal from '@/components/admin/AddDonationModal'
+import MatchDonationModal from '@/components/admin/MatchDonationModal'
 import AccessDeniedModal from '@/components/admin/minicomponents/AccessDeniedModal'
 import { useDashboard } from '@/hooks/useDashboard'
 
@@ -57,7 +58,11 @@ export default function AdminDashboard() {
     handleExport,
     handleImport,
     handleReport,
-    refreshData
+    refreshData,
+    showMatchModal,
+    setShowMatchModal,
+    donationToMatch,
+    setDonationToMatch
   } = useDashboard()
 
   // Apply dark mode to the entire page
@@ -267,6 +272,15 @@ export default function AdminDashboard() {
         onDataRefresh={refreshData}
         mode={modalMode}
         donation={currentDonation}
+        darkMode={darkMode}
+      />
+
+      {/* Match Donation Modal (for quick match) */}
+      <MatchDonationModal
+        showModal={showMatchModal}
+        setShowModal={setShowMatchModal}
+        donation={donationToMatch}
+        onDataRefresh={refreshData}
         darkMode={darkMode}
       />
 

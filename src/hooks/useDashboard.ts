@@ -46,6 +46,9 @@ export function useDashboard() {
   ])
   const [loading, setLoading] = useState(true)
   const [showAddDonorModal, setShowAddDonorModal] = useState(false)
+  // For match modal
+  const [showMatchModal, setShowMatchModal] = useState(false)
+  const [donationToMatch, setDonationToMatch] = useState<RecentProductDonation | null>(null)
   const [showAccessDeniedModal, setShowAccessDeniedModal] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null)
   const [showNotifications, setShowNotifications] = useState(false)
@@ -214,11 +217,12 @@ export function useDashboard() {
 
   const handleQuickMatch = async () => {
     try {
-      // Get all pending product donations
+      // Get all pending product donations (with details for modal)
       const { data: pendingDonations, error: fetchError } = await supabase
         .from('product_donations')
-        .select('id')
+        .select(`id, donor_id, donors(name, city, county), product_id, products(name, value), fire_department_id, fire_departments(name), quantity, donation_date, matched, status`)
         .eq('matched', false)
+        .order('donation_date', { ascending: true })
 
       if (fetchError) throw fetchError
 
@@ -228,30 +232,24 @@ export function useDashboard() {
         return
       }
 
-      // Update each pending donation individually
-      const updatePromises = pendingDonations.map(donation =>
-        supabase
-          .from('product_donations')
-          .update({
-            matched: true,
-            status: 'MATCHED'
-          })
-          .eq('id', donation.id)
-      )
-
-      const results = await Promise.all(updatePromises)
-
-      // Check for errors
-      const errors = results.filter(result => result.error)
-      if (errors.length > 0) {
-        throw errors[0].error
-      }
-
-      setMessage({ type: 'success', text: `Successfully matched ${pendingDonations.length} pending product donations!` })
-      setTimeout(() => setMessage(null), 5000)
-
-      // Refresh data
-      refreshData()
+      // Open the match modal for the first unmatched donation
+      const d = pendingDonations[0]
+      setDonationToMatch({
+        id: d.id,
+        donorId: d.donor_id,
+        donorName: d.donors?.name || 'Unknown Donor',
+        productId: d.product_id,
+        productName: d.products?.name || 'Unknown Product',
+        productValue: d.products?.value ? parseFloat(d.products.value.toString()) : 0,
+        fireDepartmentId: d.fire_department_id || null,
+        fireDepartmentName: d.fire_departments?.name || 'Pending Match',
+        quantity: d.quantity || 1,
+        city: d.donors?.city || 'N/A',
+        county: d.donors?.county || 'N/A',
+        date: d.donation_date,
+        status: d.matched ? 'MATCHED' : 'PENDING'
+      })
+      setShowMatchModal(true)
     } catch (error: any) {
       setMessage({ type: 'error', text: 'Error performing quick match: ' + error.message })
       setTimeout(() => setMessage(null), 5000)
@@ -351,6 +349,10 @@ export function useDashboard() {
     setLastNotificationCheck,
     notificationRef,
     modalRef,
+    showMatchModal,
+    setShowMatchModal,
+    donationToMatch,
+    setDonationToMatch,
 
     // Functions
     formatCurrency,
