@@ -18,8 +18,8 @@ import WelcomeCards from '@/components/admin/WelcomeCards'
 import DonorTrends from '@/components/admin/DonorTrends'
 import RecentDonors from '@/components/admin/RecentDonors'
 import RecentActivity from '@/components/admin/RecentActivity'
-import AddProductDonationModal from '@/components/admin/AddProductDonationModal'
-import AccessDeniedModal from '@/components/admin/AccessDeniedModal'
+import AddProductDonationModal from '@/components/admin/AddDonationModal'
+import AccessDeniedModal from '@/components/admin/minicomponents/AccessDeniedModal'
 import { useDashboard } from '@/hooks/useDashboard'
 
 export default function AdminDashboard() {

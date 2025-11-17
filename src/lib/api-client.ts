@@ -89,6 +89,10 @@ export async function addDonation(data: {
 }
 
 export async function updateDonation(id: string, data: {
+  product_id?: string
+  quantity?: number
+  donation_date?: string
+  notes?: string
   matched?: boolean
   fire_department_id?: string
 }) {
@@ -139,6 +143,29 @@ export async function updateDonor(id: string, data: {
   if (!response.ok) {
     const error = await response.json()
     throw new Error(error.error || 'Failed to update donor')
+  }
+  
+  return response.json()
+}
+
+export async function addProduct(data: {
+  name: string
+  category: string
+  value: number
+  description?: string
+  image_url?: string
+}) {
+  const response = await fetch(`${API_BASE}/products`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  })
+  
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.error || 'Failed to add product')
   }
   
   return response.json()

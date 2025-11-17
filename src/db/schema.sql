@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS products (
   category TEXT, -- e.g., "Sauna", "Cold Plunge"
   value DECIMAL(10,2) NOT NULL, -- Product value/price
   description TEXT,
+  image_url TEXT, -- URL to product image or base64 data URL
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -133,14 +134,6 @@ CREATE POLICY "Allow read access to fire_departments" ON fire_departments FOR SE
 CREATE POLICY "Allow insert/update to fire_departments for authenticated users" ON fire_departments FOR ALL USING (auth.uid() IS NOT NULL);
 
 CREATE POLICY "Allow read access to admins" ON admins FOR SELECT USING (auth.uid() = user_id);
-
--- Insert sample products
-INSERT INTO products (name, category, value, description) VALUES
-  ('King Sauna', 'Sauna', 12999, 'Premium outdoor barrel sauna'),
-  ('Barrel Sauna', 'Sauna', 9499, 'Classic barrel sauna'),
-  ('Pro Pod', 'Cold Plunge', 11499, 'Professional cold plunge pod'),
-  ('Air Plunge', 'Cold Plunge', 3499, 'Portable cold plunge solution')
-ON CONFLICT DO NOTHING;
 
 -- Insert California fire departments
 INSERT INTO fire_departments (name, city, county, address) VALUES

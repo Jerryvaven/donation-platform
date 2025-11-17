@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { FaSignOutAlt, FaMoon, FaSun } from 'react-icons/fa'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
-import NotificationIcon from './NotificationIcon'
+import NotificationIcon from './minicomponents/NotificationIcon'
 
 interface ActivityItem {
   id: string

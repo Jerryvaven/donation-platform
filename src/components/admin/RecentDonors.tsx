@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { FaSearch, FaSync, FaEye, FaEdit, FaTrash, FaCheckCircle, FaTimes } from 'react-icons/fa'
 import { createClient } from '@/lib/supabase-client'
 import { deleteDonation } from '@/lib/api-client'
-import DeleteConfirmModal from './DeleteConfirmModal'
+import DeleteConfirmModal from './minicomponents/DeleteConfirmModal'
+import MatchDonationModal from './MatchDonationModal'
 
 interface RecentProductDonation {
   id: string
@@ -39,33 +40,14 @@ export default function RecentDonors({ recentDonors, loading, onDataRefresh, onV
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [donationToDelete, setDonationToDelete] = useState<RecentProductDonation | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [showMatchModal, setShowMatchModal] = useState(false)
+  const [donationToMatch, setDonationToMatch] = useState<RecentProductDonation | null>(null)
   const itemsPerPage = 5
   const supabase = createClient()
 
-  const handleMatchDonation = async (donationId: string) => {
-    try {
-      // Update product donation to matched
-      const { error } = await supabase
-        .from('product_donations')
-        .update({ 
-          matched: true,
-          status: 'MATCHED'
-        })
-        .eq('id', donationId)
-
-      if (error) throw error
-
-      setMessage({ type: 'success', text: 'Product donation matched successfully!' })
-      
-      // Refresh data
-      onDataRefresh()
-      
-      // Clear message after 3 seconds
-      setTimeout(() => setMessage(null), 3000)
-    } catch (error: any) {
-      setMessage({ type: 'error', text: 'Error matching product donation: ' + error.message })
-      setTimeout(() => setMessage(null), 5000)
-    }
+  const handleMatchDonation = (donation: RecentProductDonation) => {
+    setDonationToMatch(donation)
+    setShowMatchModal(true)
   }
 
   const handleDeleteClick = (donation: RecentProductDonation) => {
@@ -259,7 +241,7 @@ export default function RecentDonors({ recentDonors, loading, onDataRefresh, onV
                             </motion.span>
                             {donor.status === 'PENDING' && (
                               <motion.button
-                                onClick={() => handleMatchDonation(donor.id)}
+                                onClick={() => handleMatchDonation(donor)}
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                                 className={`px-2 py-1 text-xs font-semibold rounded transition-colors duration-200 ${
@@ -394,6 +376,14 @@ export default function RecentDonors({ recentDonors, loading, onDataRefresh, onV
         donorName={donationToDelete?.donorName}
         amount={donationToDelete?.productValue}
         isDeleting={isDeleting}
+        darkMode={darkMode}
+      />
+
+      <MatchDonationModal
+        showModal={showMatchModal}
+        setShowModal={setShowMatchModal}
+        donation={donationToMatch}
+        onDataRefresh={onDataRefresh}
         darkMode={darkMode}
       />
     </motion.div>

@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { FaUserPlus, FaTimes, FaSync, FaCheckCircle } from 'react-icons/fa'
+import { FaUserPlus, FaTimes, FaSync, FaCheckCircle, FaPlus } from 'react-icons/fa'
 import { fetchProducts, fetchFireDepartments, addDonation, updateDonation } from '@/lib/api-client'
+import AddProductModal from './AddProductModal'
 import type { Product, FireDepartment } from '@/types'
 
 interface ProductDonation {
@@ -52,6 +53,12 @@ export default function AddProductDonationModal({
   const [fireDepartmentSearch, setFireDepartmentSearch] = useState('')
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  
+  // New product modal states
+  const [showAddProductModal, setShowAddProductModal] = useState(false)
+  const [showImageModal, setShowImageModal] = useState(false)
+  const [selectedImageUrl, setSelectedImageUrl] = useState('')
+  const [productDropdownOpen, setProductDropdownOpen] = useState(false)
 
   // Fetch products and fire departments using API routes
   useEffect(() => {
@@ -71,6 +78,18 @@ export default function AddProductDonationModal({
 
     loadData()
   }, [])
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (productDropdownOpen && !(event.target as Element).closest('.product-dropdown')) {
+        setProductDropdownOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [productDropdownOpen])
 
   useEffect(() => {
     if ((mode === 'edit' || mode === 'view') && donation) {
@@ -108,8 +127,10 @@ export default function AddProductDonationModal({
 
     try {
       if (mode === 'edit' && donation) {
-        // Update existing donation (only matching status)
+        // Update existing donation
         await updateDonation(donation.id, {
+          product_id: selectedProduct,
+          quantity: parseInt(quantity),
           matched,
           fire_department_id: matched ? selectedFireDepartment : undefined
         })
@@ -157,14 +178,15 @@ export default function AddProductDonationModal({
   }
 
   return (
-    <AnimatePresence>
-      {showAddDonorModal && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-        >
+    <>
+      <AnimatePresence>
+        {showAddDonorModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          >
           <motion.div
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -176,6 +198,11 @@ export default function AddProductDonationModal({
               msOverflowStyle: 'none',
             }}
           >
+            <style jsx>{`
+              .scrollbar-hide::-webkit-scrollbar {
+                display: none;
+              }
+            `}</style>
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-3">
                 <motion.div
@@ -294,24 +321,148 @@ export default function AddProductDonationModal({
                 </div>
 
                 <div>
-                  <label htmlFor="product" className={`block text-sm font-semibold ${darkMode ? 'text-[#B3B3B3]' : 'text-gray-700'} mb-2`}>
-                    Product *
-                  </label>
-                  <select
-                    id="product"
-                    value={selectedProduct}
-                    onChange={(e) => setSelectedProduct(e.target.value)}
-                    required
-                    disabled={mode === 'edit' || mode === 'view'}
-                    className={`w-full px-4 py-2.5 ${darkMode ? 'bg-[#242424] border-[#333333] text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-lg focus:ring-2 ${darkMode ? 'focus:ring-[#3B82F6] focus:border-[#3B82F6]' : 'focus:ring-black focus:border-black'} transition-all outline-none disabled:opacity-60 disabled:cursor-not-allowed`}
-                  >
-                    <option value="">Select Product</option>
-                    {products.map(product => (
-                      <option key={product.id} value={product.id}>
-                        {product.name} - ${product.value.toLocaleString()}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex items-center justify-between mb-2">
+                    <label htmlFor="product" className={`block text-sm font-semibold ${darkMode ? 'text-[#B3B3B3]' : 'text-gray-700'}`}>
+                      Product *
+                    </label>
+                    {mode === 'add' && (
+                      <motion.button
+                        type="button"
+                        onClick={() => setShowAddProductModal(true)}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className={`flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg ${
+                          darkMode 
+                            ? 'bg-[#3B82F6] hover:bg-[#2563EB] text-white' 
+                            : 'bg-black hover:bg-gray-800 text-white'
+                        } transition-all`}
+                      >
+                        <FaPlus className="text-xs" />
+                        Add Product
+                      </motion.button>
+                    )}
+                  </div>
+                  {/* Custom Product Dropdown */}
+                  <div className="relative product-dropdown">
+                    <div
+                      onClick={() => mode !== 'view' && setProductDropdownOpen(!productDropdownOpen)}
+                      className={`w-full px-4 py-2.5 ${darkMode ? 'bg-[#242424] border-[#333333] text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-lg cursor-pointer focus:ring-2 ${darkMode ? 'focus:ring-[#3B82F6] focus:border-[#3B82F6]' : 'focus:ring-black focus:border-black'} transition-all outline-none ${mode === 'view' ? 'opacity-60 cursor-not-allowed' : 'hover:border-gray-400'}`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className={selectedProduct ? '' : 'text-gray-500'}>
+                          {selectedProduct
+                            ? products.find(p => p.id === selectedProduct)?.name
+                            : 'Select Product'
+                          }
+                        </span>
+                        <motion.svg
+                          animate={{ rotate: productDropdownOpen ? 180 : 0 }}
+                          className={`w-5 h-5 ${darkMode ? 'text-gray-400' : 'text-gray-600'} transition-transform`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </motion.svg>
+                      </div>
+                    </div>
+
+                    {/* Dropdown Menu */}
+                    <AnimatePresence>
+                      {productDropdownOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                          className={`absolute z-50 w-full mt-1 ${darkMode ? 'bg-[#242424] border-[#333333]' : 'bg-white border-gray-300'} border rounded-lg shadow-lg max-h-60 overflow-hidden`}
+                        >
+                          <div className="max-h-48 overflow-y-auto">
+                            {products.map(product => (
+                              <motion.div
+                                key={product.id}
+                                whileHover={{ backgroundColor: darkMode ? '#333333' : '#f3f4f6' }}
+                                onClick={() => {
+                                  setSelectedProduct(product.id)
+                                  setProductDropdownOpen(false)
+                                }}
+                                className={`px-4 py-3 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0 ${
+                                  selectedProduct === product.id
+                                    ? darkMode ? 'bg-[#3B82F6]/20' : 'bg-blue-50'
+                                    : ''
+                                }`}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 flex-shrink-0">
+                                      {product.image_url ? (
+                                        <img
+                                          src={product.image_url}
+                                          alt={product.name}
+                                          className="w-full h-full object-cover rounded"
+                                        />
+                                      ) : (
+                                        <div className={`w-full h-full rounded ${darkMode ? 'bg-gray-600' : 'bg-gray-200'} flex items-center justify-center`}>
+                                          <svg className={`w-4 h-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                          </svg>
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div>
+                                      <div className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                                        {product.name}
+                                      </div>
+                                      <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                        ${product.value.toLocaleString()}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  {selectedProduct === product.id && (
+                                    <motion.div
+                                      initial={{ scale: 0 }}
+                                      animate={{ scale: 1 }}
+                                      className={`w-5 h-5 rounded-full ${darkMode ? 'bg-[#3B82F6]' : 'bg-black'} flex items-center justify-center`}
+                                    >
+                                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                      </svg>
+                                    </motion.div>
+                                  )}
+                                </div>
+                              </motion.div>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                  
+                  {/* View Image Button */}
+                  {selectedProduct && products.find(p => p.id === selectedProduct)?.image_url && (
+                    <motion.button
+                      type="button"
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      onClick={() => {
+                        setSelectedImageUrl(products.find(p => p.id === selectedProduct)?.image_url || '')
+                        setShowImageModal(true)
+                      }}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`mt-2 px-3 py-1.5 text-xs font-medium rounded-lg flex items-center gap-2 ${
+                        darkMode 
+                          ? 'bg-[#3B82F6]/10 text-[#3B82F6] hover:bg-[#3B82F6]/20 border border-[#3B82F6]/30' 
+                          : 'bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200'
+                      } transition-all`}
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      View Image
+                    </motion.button>
+                  )}
                 </div>
 
                 <div>
@@ -325,7 +476,7 @@ export default function AddProductDonationModal({
                     onChange={(e) => setQuantity(e.target.value)}
                     min="1"
                     required
-                    disabled={mode === 'edit' || mode === 'view'}
+                    disabled={mode === 'view'}
                     className={`w-full px-4 py-2.5 ${darkMode ? 'bg-[#242424] border-[#333333] text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-lg focus:ring-2 ${darkMode ? 'focus:ring-[#3B82F6] focus:border-[#3B82F6]' : 'focus:ring-black focus:border-black'} transition-all outline-none disabled:opacity-60 disabled:cursor-not-allowed`}
                     placeholder="1"
                   />
@@ -441,6 +592,56 @@ export default function AddProductDonationModal({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+      </AnimatePresence>
+
+      {/* Add Product Modal */}
+      <AddProductModal
+        showAddProductModal={showAddProductModal}
+        setShowAddProductModal={setShowAddProductModal}
+        onProductAdded={(product) => {
+          setProducts(prev => [...prev, product])
+          setSelectedProduct(product.id)
+        }}
+        darkMode={darkMode}
+      />
+
+      {/* Image Viewer Modal */}
+      <AnimatePresence>
+      {showImageModal && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[70] p-4"
+          onClick={() => setShowImageModal(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.8, opacity: 0 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="relative max-w-5xl w-full max-h-[90vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <motion.button
+              onClick={() => setShowImageModal(false)}
+              whileHover={{ scale: 1.1, rotate: 90 }}
+              whileTap={{ scale: 0.9 }}
+              className="absolute top-4 right-4 bg-white/90 hover:bg-white text-gray-800 rounded-full p-3 shadow-lg z-10 transition-all"
+            >
+              <FaTimes className="text-xl" />
+            </motion.button>
+            <div className="bg-white rounded-2xl overflow-hidden shadow-2xl">
+              <img
+                src={selectedImageUrl}
+                alt="Product full view"
+                className="w-full h-auto max-h-[85vh] object-contain"
+              />
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+      </AnimatePresence>
+    </>
   )
 }

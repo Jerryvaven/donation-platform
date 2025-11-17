@@ -6,6 +6,7 @@ export interface Product {
   category: string
   value: number
   description?: string
+  image_url?: string
 }
 
 export interface FireDepartment {
