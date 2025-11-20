@@ -170,3 +170,35 @@ export async function addProduct(data: {
   
   return response.json()
 }
+
+export async function addFireDepartment(data: {
+  name: string
+  city?: string
+  county?: string
+  address?: string
+  latitude?: string
+  longitude?: string
+}) {
+  const response = await fetch(`${API_BASE}/fire-departments`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  })
+  
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.error || 'Failed to add fire department')
+  }
+  
+  return response.json()
+}
+
+export async function fetchCoordinates(address: string) {
+  const response = await fetch(`${API_BASE}/fire-departments/fetch-osm?address=${encodeURIComponent(address)}`)
+  if (!response.ok) {
+    throw new Error('Failed to fetch coordinates')
+  }
+  return response.json()
+}

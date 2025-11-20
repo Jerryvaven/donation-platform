@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { FaUserPlus, FaTimes, FaSync, FaCheckCircle, FaPlus } from 'react-icons/fa'
 import { fetchProducts, fetchFireDepartments, addDonation, updateDonation } from '@/lib/api-client'
 import AddProductModal from './AddProductModal'
+import AddFireStationModal from './AddFireStationModal'
 import type { Product, FireDepartment } from '@/types'
 
 interface ProductDonation {
@@ -56,6 +57,7 @@ export default function AddProductDonationModal({
   
   // New product modal states
   const [showAddProductModal, setShowAddProductModal] = useState(false)
+  const [showAddFireStationModal, setShowAddFireStationModal] = useState(false)
   const [showImageModal, setShowImageModal] = useState(false)
   const [selectedImageUrl, setSelectedImageUrl] = useState('')
   const [productDropdownOpen, setProductDropdownOpen] = useState(false)
@@ -514,9 +516,27 @@ export default function AddProductDonationModal({
                   exit={{ opacity: 0, height: 0 }}
                   className="space-y-2"
                 >
-                  <label htmlFor="fireDepartmentSearch" className={`block text-sm font-semibold ${darkMode ? 'text-[#B3B3B3]' : 'text-gray-700'} mb-2`}>
-                    Fire Department *
-                  </label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label htmlFor="fireDepartmentSearch" className={`block text-sm font-semibold ${darkMode ? 'text-[#B3B3B3]' : 'text-gray-700'}`}>
+                      Fire Department *
+                    </label>
+                    {mode === 'add' && (
+                      <motion.button
+                        type="button"
+                        onClick={() => setShowAddFireStationModal(true)}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className={`flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg ${
+                          darkMode 
+                            ? 'bg-[#EF4444] hover:bg-[#DC2626] text-white' 
+                            : 'bg-red-600 hover:bg-red-700 text-white'
+                        } transition-all`}
+                      >
+                        <FaPlus className="text-xs" />
+                        Add Fire Station
+                      </motion.button>
+                    )}
+                  </div>
                   <input
                     type="text"
                     id="fireDepartmentSearch"
@@ -611,6 +631,18 @@ export default function AddProductDonationModal({
         onProductAdded={(product) => {
           setProducts(prev => [...prev, product])
           setSelectedProduct(product.id)
+        }}
+        darkMode={darkMode}
+      />
+
+      {/* Add Fire Station Modal */}
+      <AddFireStationModal
+        showAddFireStationModal={showAddFireStationModal}
+        setShowAddFireStationModal={setShowAddFireStationModal}
+        onFireStationAdded={(fireStation) => {
+          setFireDepartments(prev => [...prev, fireStation])
+          setSelectedFireDepartment(fireStation.id)
+          setFireDepartmentSearch(fireStation.name)
         }}
         darkMode={darkMode}
       />
