@@ -179,15 +179,15 @@ export function useDashboard() {
       const formattedDonors: RecentProductDonation[] = response.data.map((d: any) => ({
         id: d.id,
         donorId: d.donor_id,
-        donorName: d.donors?.name || 'Unknown Donor',
+        donorName: d.donors?.[0]?.name || 'Unknown Donor',
         productId: d.product_id,
-        productName: d.products?.name || 'Unknown Product',
-        productValue: d.products?.value ? parseFloat(d.products.value.toString()) : 0,
+        productName: d.products?.[0]?.name || 'Unknown Product',
+        productValue: d.products?.[0]?.value ? parseFloat(d.products[0].value.toString()) : 0,
         fireDepartmentId: d.fire_department_id || null,
-        fireDepartmentName: d.fire_departments?.name || 'Pending Match',
+        fireDepartmentName: d.fire_departments?.[0]?.name || 'Pending Match',
         quantity: d.quantity || 1,
-        city: d.donors?.city || 'N/A',
-        county: d.donors?.county || 'N/A',
+        city: d.donors?.[0]?.city || 'N/A',
+        county: d.donors?.[0]?.county || 'N/A',
         date: d.donation_date,
         status: d.matched ? 'MATCHED' : 'PENDING'
       }))
@@ -220,7 +220,7 @@ export function useDashboard() {
       // Get all pending product donations (with details for modal)
       const { data: pendingDonations, error: fetchError } = await supabase
         .from('product_donations')
-        .select(`id, donor_id, donors(name, city, county), product_id, products(name, value), fire_department_id, fire_departments(name), quantity, donation_date, matched, status`)
+        .select(`id, donor_id, donors!donor_id(name, city, county), product_id, products!product_id(name, value), fire_department_id, fire_departments!fire_department_id(name), quantity, donation_date, matched, status`)
         .eq('matched', false)
         .order('donation_date', { ascending: true })
 
@@ -237,15 +237,15 @@ export function useDashboard() {
       setDonationToMatch({
         id: d.id,
         donorId: d.donor_id,
-        donorName: d.donors?.name || 'Unknown Donor',
+        donorName: d.donors?.[0]?.name || 'Unknown Donor',
         productId: d.product_id,
-        productName: d.products?.name || 'Unknown Product',
-        productValue: d.products?.value ? parseFloat(d.products.value.toString()) : 0,
+        productName: d.products?.[0]?.name || 'Unknown Product',
+        productValue: d.products?.[0]?.value ? parseFloat(d.products[0].value.toString()) : 0,
         fireDepartmentId: d.fire_department_id || null,
-        fireDepartmentName: d.fire_departments?.name || 'Pending Match',
+        fireDepartmentName: d.fire_departments?.[0]?.name || 'Pending Match',
         quantity: d.quantity || 1,
-        city: d.donors?.city || 'N/A',
-        county: d.donors?.county || 'N/A',
+        city: d.donors?.[0]?.city || 'N/A',
+        county: d.donors?.[0]?.county || 'N/A',
         date: d.donation_date,
         status: d.matched ? 'MATCHED' : 'PENDING'
       })
