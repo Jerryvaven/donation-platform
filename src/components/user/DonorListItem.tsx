@@ -44,7 +44,7 @@ export default function DonorListItem({ donor, index, darkMode }: DonorListItemP
               {productSummary}
             </div>
             <div className={`text-xs ${darkMode ? 'text-[#B3B3B3]' : 'text-gray-500'}`}>
-              {donor.city && donor.county ? `${donor.city}, ${donor.county}` : donor.county || donor.city || 'Unknown location'}
+              {donor.city && donor.state ? `${donor.city}, ${donor.state}` : donor.state || donor.city || 'Unknown location'}
             </div>
           </div>
         </div>

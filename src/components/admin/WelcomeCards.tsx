@@ -26,6 +26,12 @@ interface DashboardStats {
   todaysProducts: number;
   newDonorsToday: number;
   matchRate: number;
+  // Growth percentages
+  totalDonatedValueGrowth: number;
+  totalProductsDonatedGrowth: number;
+  totalDonorsGrowth: number;
+  matchedProductsGrowth: number;
+  fireDepartmentsReachedGrowth: number;
 }
 
 interface WelcomeCardsProps {
@@ -51,6 +57,17 @@ export default function WelcomeCards({
       }
       return newSet;
     });
+  };
+
+  const formatGrowth = (growth: number) => {
+    const isPositive = growth >= 0;
+    return {
+      value: Math.abs(growth).toFixed(1),
+      isPositive,
+      icon: isPositive ? FaArrowUp : FaArrowDown,
+      color: isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400',
+      bgColor: isPositive ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30'
+    };
   };
 
   return (
@@ -143,12 +160,18 @@ export default function WelcomeCards({
               {formatCurrency(stats.totalDonatedValue)}
             </motion.div>
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 dark:bg-green-900/30">
-                <FaArrowUp className="text-xs text-green-600 dark:text-green-400" />
-                <span className="text-xs font-medium text-green-600 dark:text-green-400">
-                  12.5%
-                </span>
-              </div>
+              {(() => {
+                const growth = formatGrowth(stats.totalDonatedValueGrowth);
+                const IconComponent = growth.icon;
+                return (
+                  <div className={`flex items-center gap-1 px-2 py-1 rounded-full ${growth.bgColor}`}>
+                    <IconComponent className={`text-xs ${growth.color}`} />
+                    <span className={`text-xs font-medium ${growth.color}`}>
+                      {growth.value}%
+                    </span>
+                  </div>
+                );
+              })()}
               <span className="text-xs text-gray-500 dark:text-gray-400">
                 vs last month
               </span>
@@ -294,12 +317,18 @@ export default function WelcomeCards({
               {stats.totalDonors}
             </motion.div>
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 dark:bg-green-900/30">
-                <FaArrowUp className="text-xs text-green-600 dark:text-green-400" />
-                <span className="text-xs font-medium text-green-600 dark:text-green-400">
-                  8.3%
-                </span>
-              </div>
+              {(() => {
+                const growth = formatGrowth(stats.totalDonorsGrowth);
+                const IconComponent = growth.icon;
+                return (
+                  <div className={`flex items-center gap-1 px-2 py-1 rounded-full ${growth.bgColor}`}>
+                    <IconComponent className={`text-xs ${growth.color}`} />
+                    <span className={`text-xs font-medium ${growth.color}`}>
+                      {growth.value}%
+                    </span>
+                  </div>
+                );
+              })()}
               <span className="text-xs text-gray-500 dark:text-gray-400">
                 vs last month
               </span>
@@ -362,7 +391,7 @@ export default function WelcomeCards({
                           darkMode ? "text-white" : "text-gray-900"
                         }`}
                       >
-                        95.2%
+                        {stats.matchRate.toFixed(1)}%
                       </span>
                     </div>
                   </div>
@@ -439,12 +468,18 @@ export default function WelcomeCards({
               {stats.matchedProducts}
             </motion.div>
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 dark:bg-green-900/30">
-                <FaArrowUp className="text-xs text-green-600 dark:text-green-400" />
-                <span className="text-xs font-medium text-green-600 dark:text-green-400">
-                  15.7%
-                </span>
-              </div>
+              {(() => {
+                const growth = formatGrowth(stats.matchedProductsGrowth);
+                const IconComponent = growth.icon;
+                return (
+                  <div className={`flex items-center gap-1 px-2 py-1 rounded-full ${growth.bgColor}`}>
+                    <IconComponent className={`text-xs ${growth.color}`} />
+                    <span className={`text-xs font-medium ${growth.color}`}>
+                      {growth.value}%
+                    </span>
+                  </div>
+                );
+              })()}
               <span className="text-xs text-gray-500 dark:text-gray-400">
                 vs last month
               </span>
@@ -587,12 +622,18 @@ export default function WelcomeCards({
               {stats.fireDepartmentsReached}
             </motion.div>
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 dark:bg-green-900/30">
-                <FaArrowUp className="text-xs text-green-600 dark:text-green-400" />
-                <span className="text-xs font-medium text-green-600 dark:text-green-400">
-                  6.2%
-                </span>
-              </div>
+              {(() => {
+                const growth = formatGrowth(stats.fireDepartmentsReachedGrowth);
+                const IconComponent = growth.icon;
+                return (
+                  <div className={`flex items-center gap-1 px-2 py-1 rounded-full ${growth.bgColor}`}>
+                    <IconComponent className={`text-xs ${growth.color}`} />
+                    <span className={`text-xs font-medium ${growth.color}`}>
+                      {growth.value}%
+                    </span>
+                  </div>
+                );
+              })()}
               <span className="text-xs text-gray-500 dark:text-gray-400">
                 vs last month
               </span>

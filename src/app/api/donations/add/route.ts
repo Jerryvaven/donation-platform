@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     const {
       donorName,
       city,
-      county,
+      state,
       address,
       productId,
       quantity,
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
           total_donated_value: newTotalValue,
           total_products_donated: newTotalProducts,
           city: city || null,
-          county: county || null,
+          state: state || null,
           address: address || null,
           updated_at: new Date().toISOString(),
         })
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
             total_donated_value: productValue,
             total_products_donated: parseInt(quantity),
             city: city || null,
-            county: county || null,
+            state: state || null,
             address: address || null,
           },
         ])

@@ -6,20 +6,20 @@ export type SortDirection = 'asc' | 'desc'
 
 export const useDonorFilters = (donors: Donor[]) => {
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedCounty, setSelectedCounty] = useState('')
+  const [selectedState, setSelectedState] = useState('')
   const [sortBy, setSortBy] = useState<SortOption>('total_donated')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
 
-  const counties = useMemo(() => {
-    const uniqueCounties = new Set(donors.map(donor => donor.county).filter((county): county is string => Boolean(county)))
-    return Array.from(uniqueCounties).sort()
+  const states = useMemo(() => {
+    const uniqueStates = new Set(donors.map(donor => donor.state).filter((state): state is string => Boolean(state)))
+    return Array.from(uniqueStates).sort()
   }, [donors])
 
   const filteredAndSortedDonors = useMemo(() => {
     let filtered = donors.filter(donor => {
       const matchesSearch = donor.name.toLowerCase().includes(searchTerm.toLowerCase())
-      const matchesCounty = !selectedCounty || donor.county === selectedCounty
-      return matchesSearch && matchesCounty
+      const matchesState = !selectedState || donor.state === selectedState
+      return matchesSearch && matchesState
     })
 
     filtered.sort((a, b) => {
@@ -49,7 +49,7 @@ export const useDonorFilters = (donors: Donor[]) => {
     })
 
     return filtered
-  }, [donors, searchTerm, selectedCounty, sortBy, sortDirection])
+  }, [donors, searchTerm, selectedState, sortBy, sortDirection])
 
   const handleSort = (option: SortOption) => {
     if (sortBy === option) {
@@ -63,11 +63,11 @@ export const useDonorFilters = (donors: Donor[]) => {
   return {
     searchTerm,
     setSearchTerm,
-    selectedCounty,
-    setSelectedCounty,
+    selectedState,
+    setSelectedState,
     sortBy,
     sortDirection,
-    counties,
+    states,
     filteredAndSortedDonors,
     handleSort
   }

@@ -18,15 +18,29 @@ import WelcomeCards from '@/components/admin/WelcomeCards'
 import DonorTrends from '@/components/admin/DonorTrends'
 import RecentDonors from '@/components/admin/RecentDonors'
 import RecentActivity from '@/components/admin/RecentActivity'
+import AllProductsList from '@/components/admin/AllProductsList'
+import AllFireStationsList from '@/components/admin/AllFireStationsList'
+import AddProductModal from '@/components/admin/AddProductModal'
+import AddFireStationModal from '@/components/admin/AddFireStationModal'
 import AddProductDonationModal from '@/components/admin/AddDonationModal'
 import MatchDonationModal from '@/components/admin/MatchDonationModal'
 import AccessDeniedModal from '@/components/admin/minicomponents/AccessDeniedModal'
+import DeleteConfirmModal from '@/components/admin/minicomponents/DeleteConfirmModal'
 import { useDashboard } from '@/hooks/useDashboard'
 
 export default function AdminDashboard() {
   const [modalMode, setModalMode] = useState<'add' | 'edit' | 'view'>('add')
   const [currentDonation, setCurrentDonation] = useState<any>(null)
   const [darkMode, setDarkMode] = useState(true)
+  const [showAddProductModal, setShowAddProductModal] = useState(false)
+  const [showAddFireStationModal, setShowAddFireStationModal] = useState(false)
+  const [currentProduct, setCurrentProduct] = useState<any>(null)
+  const [currentFireStation, setCurrentFireStation] = useState<any>(null)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteItem, setDeleteItem] = useState<{ type: 'product' | 'fireStation'; item: any } | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [productsRefreshTrigger, setProductsRefreshTrigger] = useState(0)
+  const [fireStationsRefreshTrigger, setFireStationsRefreshTrigger] = useState(0)
 
   const {
     // State
@@ -64,6 +78,84 @@ export default function AdminDashboard() {
     donationToMatch,
     setDonationToMatch
   } = useDashboard()
+
+  // Local refresh functions for specific containers
+  const refreshProducts = () => {
+    setProductsRefreshTrigger(prev => prev + 1)
+  }
+
+  const refreshFireStations = () => {
+    setFireStationsRefreshTrigger(prev => prev + 1)
+  }
+
+  // Prevent background scrolling when modals are open
+  useEffect(() => {
+    const isAnyModalOpen = showAddDonorModal || showAddProductModal || showAddFireStationModal || showDeleteModal || showMatchModal || showAccessDeniedModal
+    
+    if (isAnyModalOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [showAddDonorModal, showAddProductModal, showAddFireStationModal, showDeleteModal, showMatchModal, showAccessDeniedModal])
+
+  // Delete functions
+  const handleDeleteProduct = async () => {
+    if (!deleteItem || deleteItem.type !== 'product') return
+
+    setIsDeleting(true)
+    try {
+      const response = await fetch(`/api/products/${deleteItem.item.id}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        setMessage({ type: 'success', text: 'Product deleted successfully!' })
+        refreshProducts()
+      } else {
+        const error = await response.json()
+        setMessage({ type: 'error', text: error.error || 'Failed to delete product' })
+      }
+    } catch (error) {
+      console.error('Error deleting product:', error)
+      setMessage({ type: 'error', text: 'Failed to delete product' })
+    } finally {
+      setIsDeleting(false)
+      setShowDeleteModal(false)
+      setDeleteItem(null)
+    }
+  }
+
+  const handleDeleteFireStation = async () => {
+    if (!deleteItem || deleteItem.type !== 'fireStation') return
+
+    setIsDeleting(true)
+    try {
+      const response = await fetch(`/api/fire-departments/${deleteItem.item.id}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        setMessage({ type: 'success', text: 'Fire station deleted successfully!' })
+        refreshFireStations()
+      } else {
+        const error = await response.json()
+        setMessage({ type: 'error', text: error.error || 'Failed to delete fire station' })
+      }
+    } catch (error) {
+      console.error('Error deleting fire station:', error)
+      setMessage({ type: 'error', text: 'Failed to delete fire station' })
+    } finally {
+      setIsDeleting(false)
+      setShowDeleteModal(false)
+      setDeleteItem(null)
+    }
+  }
 
   // Apply dark mode to the entire page
   useEffect(() => {
@@ -235,7 +327,7 @@ export default function AdminDashboard() {
         </motion.div>
 
         {/* Recent Donors and Activity Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
           <RecentDonors 
             recentDonors={recentDonors} 
             loading={loading}
@@ -253,6 +345,44 @@ export default function AdminDashboard() {
             darkMode={darkMode}
           />
           <RecentActivity recentActivity={recentActivity} darkMode={darkMode} />
+        </div>
+
+        {/* Products and Fire Stations Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <AllProductsList
+            key={`products-${productsRefreshTrigger}`}
+            darkMode={darkMode}
+            refreshTrigger={productsRefreshTrigger}
+            onAddProduct={() => {
+              setCurrentProduct(null)
+              setShowAddProductModal(true)
+            }}
+            onEditProduct={(product) => {
+              setCurrentProduct(product)
+              setShowAddProductModal(true)
+            }}
+            onDeleteProduct={(product) => {
+              setDeleteItem({ type: 'product', item: product })
+              setShowDeleteModal(true)
+            }}
+          />
+          <AllFireStationsList
+            key={`firestations-${fireStationsRefreshTrigger}`}
+            darkMode={darkMode}
+            refreshTrigger={fireStationsRefreshTrigger}
+            onAddFireStation={() => {
+              setCurrentFireStation(null)
+              setShowAddFireStationModal(true)
+            }}
+            onEditFireStation={(fireStation) => {
+              setCurrentFireStation(fireStation)
+              setShowAddFireStationModal(true)
+            }}
+            onDeleteFireStation={(fireStation) => {
+              setDeleteItem({ type: 'fireStation', item: fireStation })
+              setShowDeleteModal(true)
+            }}
+          />
         </div>
       </main>
 
@@ -288,6 +418,42 @@ export default function AdminDashboard() {
       <AccessDeniedModal
         showAccessDeniedModal={showAccessDeniedModal}
         setShowAccessDeniedModal={setShowAccessDeniedModal}
+        darkMode={darkMode}
+      />
+
+      {/* Add Product Modal */}
+      <AddProductModal
+        showAddProductModal={showAddProductModal}
+        setShowAddProductModal={setShowAddProductModal}
+        onProductAdded={refreshProducts}
+        onProductUpdated={refreshProducts}
+        editProduct={currentProduct}
+        darkMode={darkMode}
+      />
+
+      {/* Add Fire Station Modal */}
+      <AddFireStationModal
+        showAddFireStationModal={showAddFireStationModal}
+        setShowAddFireStationModal={setShowAddFireStationModal}
+        onFireStationAdded={refreshFireStations}
+        onFireStationUpdated={refreshFireStations}
+        editStation={currentFireStation}
+        darkMode={darkMode}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false)
+          setDeleteItem(null)
+        }}
+        onConfirm={deleteItem?.type === 'product' ? handleDeleteProduct : handleDeleteFireStation}
+        title={deleteItem?.type === 'product' ? 'Delete Product' : 'Delete Fire Station'}
+        description={`This will permanently remove the ${deleteItem?.type === 'product' ? 'product' : 'fire station'} from the system`}
+        itemName={deleteItem?.item?.name}
+        itemValue={deleteItem?.type === 'product' ? deleteItem?.item?.description : deleteItem?.item?.city}
+        isDeleting={isDeleting}
         darkMode={darkMode}
       />
     </div>

@@ -1,15 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FaTimes, FaPlus, FaCheckCircle, FaSync, FaFireAlt } from 'react-icons/fa'
-import { addFireDepartment, fetchCoordinates } from '@/lib/api-client'
+import { addFireDepartment, updateFireDepartment, fetchCoordinates } from '@/lib/api-client'
 import type { FireDepartment } from '@/types'
 
 interface AddFireStationModalProps {
   showAddFireStationModal: boolean
   setShowAddFireStationModal: (show: boolean) => void
   onFireStationAdded: (fireStation: FireDepartment) => void
+  onFireStationUpdated?: (fireStation: FireDepartment) => void
+  editStation?: FireDepartment | null
   darkMode?: boolean
 }
 
@@ -17,6 +19,8 @@ export default function AddFireStationModal({
   showAddFireStationModal,
   setShowAddFireStationModal,
   onFireStationAdded,
+  onFireStationUpdated,
+  editStation,
   darkMode = false
 }: AddFireStationModalProps) {
   const [newStationName, setNewStationName] = useState('')
@@ -28,6 +32,26 @@ export default function AddFireStationModal({
   const [addingStation, setAddingStation] = useState(false)
   const [fetchingCoords, setFetchingCoords] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+
+  // Populate form when editing
+  useEffect(() => {
+    if (editStation) {
+      setNewStationName(editStation.name || '')
+      setNewStationCity(editStation.city || '')
+      setNewStationCounty(editStation.county || '')
+      setNewStationAddress(editStation.address || '')
+      setNewStationLatitude(editStation.latitude?.toString() || '')
+      setNewStationLongitude(editStation.longitude?.toString() || '')
+    } else {
+      // Reset form when not editing
+      setNewStationName('')
+      setNewStationCity('')
+      setNewStationCounty('')
+      setNewStationAddress('')
+      setNewStationLatitude('')
+      setNewStationLongitude('')
+    }
+  }, [editStation])
 
   const handleFetchCoordinates = async () => {
     if (!newStationAddress.trim()) {
@@ -56,7 +80,7 @@ export default function AddFireStationModal({
     }
   }
 
-  const handleAddFireStation = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newStationName.trim()) {
       setMessage({ type: 'error', text: 'Please enter a fire station name.' })
@@ -76,11 +100,21 @@ export default function AddFireStationModal({
         longitude: newStationLongitude.trim() || undefined
       }
 
-      const response = await addFireDepartment(stationData)
+      let response
+      if (editStation) {
+        response = await updateFireDepartment(editStation.id, stationData)
+      } else {
+        response = await addFireDepartment(stationData)
+      }
       
       if (response.success) {
-        setMessage({ type: 'success', text: 'Fire station added successfully!' })
-        onFireStationAdded(response.data)
+        setMessage({ type: 'success', text: editStation ? 'Fire station updated successfully!' : 'Fire station added successfully!' })
+        
+        if (editStation && onFireStationUpdated) {
+          onFireStationUpdated(response.data)
+        } else {
+          onFireStationAdded(response.data)
+        }
         
         // Reset form
         setNewStationName('')
@@ -95,11 +129,11 @@ export default function AddFireStationModal({
           setMessage(null)
         }, 1500)
       } else {
-        setMessage({ type: 'error', text: response.message || 'Failed to add fire station.' })
+        setMessage({ type: 'error', text: response.message || `Failed to ${editStation ? 'update' : 'add'} fire station.` })
       }
     } catch (error: unknown) {
-      console.error('Error adding fire station:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Failed to add fire station.'
+      console.error(`Error ${editStation ? 'updating' : 'adding'} fire station:`, error)
+      const errorMessage = error instanceof Error ? error.message : `Failed to ${editStation ? 'update' : 'add'} fire station.`
       setMessage({ type: 'error', text: errorMessage })
     } finally {
       setAddingStation(false)
@@ -142,10 +176,10 @@ export default function AddFireStationModal({
                 </motion.div>
                 <div>
                   <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                    Add Fire Station
+                    {editStation ? 'Edit Fire Station' : 'Add Fire Station'}
                   </h2>
                   <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    Fill in the details to add a new fire station
+                    {editStation ? 'Update the fire station details' : 'Fill in the details to add a new fire station'}
                   </p>
                 </div>
               </div>
@@ -190,7 +224,7 @@ export default function AddFireStationModal({
               )}
             </AnimatePresence>
 
-            <form onSubmit={handleAddFireStation} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label htmlFor="stationName" className={`block text-sm font-semibold ${darkMode ? 'text-[#B3B3B3]' : 'text-gray-700'} mb-2`}>
                   Fire Station Name *
@@ -320,12 +354,12 @@ export default function AddFireStationModal({
                   {addingStation ? (
                     <>
                       <FaSync className="animate-spin" />
-                      Adding...
+                      {editStation ? 'Updating...' : 'Adding...'}
                     </>
                   ) : (
                     <>
                       <FaPlus />
-                      Add Fire Station
+                      {editStation ? 'Update Fire Station' : 'Add Fire Station'}
                     </>
                   )}
                 </motion.button>

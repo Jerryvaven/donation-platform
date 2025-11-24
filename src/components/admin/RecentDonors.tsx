@@ -1,28 +1,15 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
+import dynamic from 'next/dynamic'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FaSearch, FaSync, FaEye, FaEdit, FaTrash, FaCheckCircle, FaTimes } from 'react-icons/fa'
 import { createClient } from '@/lib/supabase-client'
 import { deleteDonation } from '@/lib/api-client'
 import DeleteConfirmModal from './minicomponents/DeleteConfirmModal'
 import MatchDonationModal from './MatchDonationModal'
-
-interface RecentProductDonation {
-  id: string
-  donorId: string
-  donorName: string
-  productId: string
-  productName: string
-  productValue: number
-  fireDepartmentId: string | null
-  fireDepartmentName: string
-  quantity: number
-  city: string
-  county: string
-  date: string
-  status: 'MATCHED' | 'PENDING'
-}
+import type { RecentProductDonation } from '@/types'
 
 interface RecentDonorsProps {
   recentDonors: RecentProductDonation[]
@@ -91,7 +78,7 @@ export default function RecentDonors({ recentDonors, loading, onDataRefresh, onV
     >
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Recent Donors</h2>
+          <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Donors</h2>
           <p className={`text-sm ${darkMode ? 'text-[#B3B3B3]' : 'text-gray-500'}`}>Manage and track your donors</p>
         </div>
         <div className="relative w-full sm:w-auto">
@@ -191,16 +178,29 @@ export default function RecentDonors({ recentDonors, loading, onDataRefresh, onV
                           <div className="flex items-center gap-3">
                             <motion.div
                               whileHover={{ scale: 1.1 }}
-                              className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
-                                darkMode ? 'bg-[#3B82F6] text-white' : 'bg-gray-900 text-white'
-                              }`}
+                              className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center"
                             >
-                              {donor.donorName.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                              {donor.productImage ? (
+                                <img
+                                  src={donor.productImage}
+                                  alt={donor.productName}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none'
+                                    e.currentTarget.nextElementSibling?.classList.remove('hidden')
+                                  }}
+                                />
+                              ) : null}
+                              <div className={`w-full h-full flex items-center justify-center font-semibold ${
+                                donor.productImage ? 'hidden' : ''
+                              } ${darkMode ? 'bg-[#3B82F6] text-white' : 'bg-gray-900 text-white'}`}>
+                                {donor.productName.charAt(0).toUpperCase()}
+                              </div>
                             </motion.div>
                             <div>
                               <div className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{donor.donorName}</div>
                               <div className={`text-xs ${darkMode ? 'text-[#808080]' : 'text-gray-500'}`}>
-                                {donor.city}, {donor.county}
+                                {donor.city}, {donor.state}
                               </div>
                             </div>
                           </div>
@@ -303,7 +303,7 @@ export default function RecentDonors({ recentDonors, loading, onDataRefresh, onV
               searchQuery === '' ||
               donor.donorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
               donor.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              donor.county.toLowerCase().includes(searchQuery.toLowerCase())
+              donor.state.toLowerCase().includes(searchQuery.toLowerCase())
             )
             const totalPages = Math.ceil(filteredDonors.length / itemsPerPage)
             const startIndex = (currentPage - 1) * itemsPerPage + 1
@@ -373,8 +373,8 @@ export default function RecentDonors({ recentDonors, loading, onDataRefresh, onV
           setDonationToDelete(null)
         }}
         onConfirm={handleDeleteConfirm}
-        donorName={donationToDelete?.donorName}
-        amount={donationToDelete?.productValue}
+        itemName={donationToDelete?.donorName}
+        itemValue={`$${donationToDelete?.productValue.toLocaleString('en-US', { minimumFractionDigits: 0 })}`}
         isDeleting={isDeleting}
         darkMode={darkMode}
       />

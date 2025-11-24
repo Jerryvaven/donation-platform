@@ -188,7 +188,9 @@ export default function DonorMap({ donors, darkMode = false }: DonorMapProps) {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          {Object.entries(locationGroups).map(([coordKey, groupStations]) => {
+          {Object.entries(locationGroups)
+            .filter(([coordKey, groupStations]) => groupStations.some(station => station.hasDonations))
+            .map(([coordKey, groupStations]) => {
             const [latStr, lngStr] = coordKey.split(',')
             const coordinates: LatLngExpression = [parseFloat(latStr), parseFloat(lngStr)]
             
@@ -252,15 +254,11 @@ export default function DonorMap({ donors, darkMode = false }: DonorMapProps) {
         </MapContainer>
       </div>
       <div className={`mt-2 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>
-        Showing {Object.keys(locationGroups).length} locations with {allFireStationsWithCoords.length} fire stations
+        Showing {Object.entries(locationGroups).filter(([coordKey, groupStations]) => groupStations.some(station => station.hasDonations)).length} locations with donations
         <div className="mt-1 flex gap-4">
           <span className="flex items-center gap-1">
             <span className="inline-block w-3 h-3 rounded-full bg-green-500"></span>
             Fire stations with donations ({allFireStationsWithCoords.filter(s => s.hasDonations).length})
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="inline-block w-3 h-3 rounded-full bg-red-500"></span>
-            Fire stations without donations ({allFireStationsWithCoords.filter(s => !s.hasDonations).length})
           </span>
         </div>
       </div>

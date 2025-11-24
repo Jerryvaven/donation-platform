@@ -40,7 +40,7 @@ export interface Donor {
   total_donated_value: number
   total_products_donated: number
   city?: string
-  county?: string
+  state?: string
   address?: string
   latitude?: string
   longitude?: string
@@ -60,6 +60,12 @@ export interface DashboardStats {
   todaysProducts: number
   newDonorsToday: number
   matchRate: number
+  // Growth percentages
+  totalDonatedValueGrowth: number
+  totalProductsDonatedGrowth: number
+  totalDonorsGrowth: number
+  matchedProductsGrowth: number
+  fireDepartmentsReachedGrowth: number
 }
 
 export interface RecentProductDonation {
@@ -69,11 +75,13 @@ export interface RecentProductDonation {
   productId: string
   productName: string
   productValue: number
+  productImage?: string
   fireDepartmentId: string | null
   fireDepartmentName: string
   quantity: number
   city: string
-  county: string
+  state: string
+  address?: string
   date: string
   status: 'MATCHED' | 'PENDING'
 }

@@ -11,9 +11,9 @@ export async function GET(request: NextRequest) {
       .from('product_donations')
       .select(`
         *,
-        products!product_id(name, value, category),
-        fire_departments!fire_department_id(name),
-        donors!donor_id(name, city, county)
+        products(name, value, category, image_url),
+        fire_departments(name),
+        donors(name, city, state, address)
       `)
       .order('donation_date', { ascending: false })
 

@@ -17,7 +17,7 @@ interface ProductDonation {
   fireDepartmentName: string
   quantity: number
   city: string
-  county: string
+  state: string
   date: string
   status: 'MATCHED' | 'PENDING'
 }
@@ -181,7 +181,7 @@ export default function MatchDonationModal({
                 <p><strong>Donor:</strong> {donation.donorName}</p>
                 <p><strong>Product:</strong> {donation.productName} (x{donation.quantity})</p>
                 <p><strong>Value:</strong> ${donation.productValue * donation.quantity}</p>
-                <p><strong>Location:</strong> {donation.city}, {donation.county}</p>
+                <p><strong>Location:</strong> {donation.city}, {donation.state}</p>
               </div>
             </div>
 

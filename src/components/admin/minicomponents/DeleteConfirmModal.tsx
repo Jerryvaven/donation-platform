@@ -7,8 +7,10 @@ interface DeleteConfirmModalProps {
   isOpen: boolean
   onClose: () => void
   onConfirm: () => void
-  donorName?: string
-  amount?: number
+  title?: string
+  description?: string
+  itemName?: string
+  itemValue?: string
   isDeleting?: boolean
   darkMode?: boolean
 }
@@ -17,8 +19,10 @@ export default function DeleteConfirmModal({
   isOpen,
   onClose,
   onConfirm,
-  donorName,
-  amount,
+  title = "Delete Item",
+  description = "This action cannot be undone",
+  itemName,
+  itemValue,
   isDeleting = false,
   darkMode = false
 }: DeleteConfirmModalProps) {
@@ -56,8 +60,8 @@ export default function DeleteConfirmModal({
                   }`} />
                 </motion.div>
                 <div>
-                  <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Delete Donation</h2>
-                  <p className={`text-sm mt-1 ${darkMode ? 'text-[#808080]' : 'text-gray-500'}`}>This action cannot be undone</p>
+                  <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{title}</h2>
+                  <p className={`text-sm mt-1 ${darkMode ? 'text-[#808080]' : 'text-gray-500'}`}>{description}</p>
                 </div>
               </div>
               <motion.button
@@ -75,22 +79,20 @@ export default function DeleteConfirmModal({
 
             <div className="mb-6">
               <p className={`mb-4 ${darkMode ? 'text-[#B3B3B3]' : 'text-gray-700'}`}>
-                Are you sure you want to delete this donation?
+                Are you sure you want to delete this item?
               </p>
-              {donorName && (
+              {itemName && (
                 <div className={`rounded-lg p-4 border ${
                   darkMode ? 'bg-[#242424] border-[#333333]' : 'bg-gray-50 border-gray-200'
                 }`}>
                   <div className="flex justify-between items-center mb-2">
-                    <span className={`text-sm font-semibold ${darkMode ? 'text-[#808080]' : 'text-gray-600'}`}>Donor:</span>
-                    <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>{donorName}</span>
+                    <span className={`text-sm font-semibold ${darkMode ? 'text-[#808080]' : 'text-gray-600'}`}>Name:</span>
+                    <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>{itemName}</span>
                   </div>
-                  {amount !== undefined && (
+                  {itemValue && (
                     <div className="flex justify-between items-center">
-                      <span className={`text-sm font-semibold ${darkMode ? 'text-[#808080]' : 'text-gray-600'}`}>Amount:</span>
-                      <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                        ${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </span>
+                      <span className={`text-sm font-semibold ${darkMode ? 'text-[#808080]' : 'text-gray-600'}`}>Details:</span>
+                      <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>{itemValue}</span>
                     </div>
                   )}
                 </div>

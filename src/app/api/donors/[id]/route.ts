@@ -10,7 +10,7 @@ export async function PUT(
     const body = await request.json()
     const { id } = await context.params
 
-    const { total_donated_value, total_products_donated, city, county, address } = body
+    const { total_donated_value, total_products_donated, city, state, address } = body
 
     const { data, error } = await supabase
       .from('donors')
@@ -18,7 +18,7 @@ export async function PUT(
         total_donated_value,
         total_products_donated,
         city: city || null,
-        county: county || null,
+        state: state || null,
         address: address || null,
         updated_at: new Date().toISOString()
       })

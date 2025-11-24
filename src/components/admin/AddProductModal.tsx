@@ -1,16 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FaTimes, FaPlus, FaCheckCircle, FaSync } from 'react-icons/fa'
-import { addProduct } from '@/lib/api-client'
+import { addProduct, updateProduct } from '@/lib/api-client'
 import type { Product } from '@/types'
 
 interface AddProductModalProps {
   showAddProductModal: boolean
   setShowAddProductModal: (show: boolean) => void
   onProductAdded: (product: Product) => void
+  onProductUpdated?: (product: Product) => void
+  editProduct?: Product | null
   darkMode?: boolean
 }
 
@@ -18,6 +20,8 @@ export default function AddProductModal({
   showAddProductModal,
   setShowAddProductModal,
   onProductAdded,
+  onProductUpdated,
+  editProduct = null,
   darkMode = false
 }: AddProductModalProps) {
   const [newProductName, setNewProductName] = useState('')
@@ -30,6 +34,26 @@ export default function AddProductModal({
   const [addingProduct, setAddingProduct] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
+  // Populate form when editing
+  React.useEffect(() => {
+    if (editProduct) {
+      setNewProductName(editProduct.name)
+      setNewProductCategory(editProduct.category)
+      setNewProductValue(editProduct.value.toString())
+      setNewProductDescription(editProduct.description || '')
+      setNewProductImageUrl(editProduct.image_url || '')
+      setImagePreview(editProduct.image_url || '')
+    } else {
+      // Reset form when not editing
+      setNewProductName('')
+      setNewProductCategory('')
+      setNewProductValue('')
+      setNewProductDescription('')
+      setNewProductImageUrl('')
+      setImagePreview('')
+    }
+  }, [editProduct])
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
@@ -41,7 +65,7 @@ export default function AddProductModal({
     }
   }
 
-  const handleAddProduct = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newProductName.trim() || !newProductCategory.trim() || !newProductValue.trim()) {
       setMessage({ type: 'error', text: 'Please fill in all required fields.' })
@@ -60,12 +84,26 @@ export default function AddProductModal({
         image_url: uploadMethod === 'url' ? newProductImageUrl.trim() || undefined : imagePreview || undefined
       }
 
-      const response = await addProduct(productData)
+      let response;
+      if (editProduct) {
+        // Update existing product
+        response = await updateProduct(editProduct.id, productData)
+        if (response.success) {
+          setMessage({ type: 'success', text: 'Product updated successfully!' })
+          if (onProductUpdated) {
+            onProductUpdated(response.data)
+          }
+        }
+      } else {
+        // Add new product
+        response = await addProduct(productData)
+        if (response.success) {
+          setMessage({ type: 'success', text: 'Product added successfully!' })
+          onProductAdded(response.data)
+        }
+      }
       
       if (response.success) {
-        setMessage({ type: 'success', text: 'Product added successfully!' })
-        onProductAdded(response.data)
-        
         // Reset form
         setNewProductName('')
         setNewProductCategory('')
@@ -80,11 +118,11 @@ export default function AddProductModal({
           setMessage(null)
         }, 1500)
       } else {
-        setMessage({ type: 'error', text: response.message || 'Failed to add product.' })
+        setMessage({ type: 'error', text: response.message || `Failed to ${editProduct ? 'update' : 'add'} product.` })
       }
     } catch (error: unknown) {
-      console.error('Error adding product:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Failed to add product.'
+      console.error(`Error ${editProduct ? 'updating' : 'adding'} product:`, error)
+      const errorMessage = error instanceof Error ? error.message : `Failed to ${editProduct ? 'update' : 'add'} product.`
       setMessage({ type: 'error', text: errorMessage })
     } finally {
       setAddingProduct(false)
@@ -127,10 +165,10 @@ export default function AddProductModal({
                 </motion.div>
                 <div>
                   <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                    Add New Product
+                    {editProduct ? 'Edit Product' : 'Add New Product'}
                   </h2>
                   <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    Fill in the details to add a new product
+                    {editProduct ? 'Update the product details' : 'Fill in the details to add a new product'}
                   </p>
                 </div>
               </div>
@@ -175,7 +213,7 @@ export default function AddProductModal({
               )}
             </AnimatePresence>
 
-            <form onSubmit={handleAddProduct} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label htmlFor="productName" className={`block text-sm font-semibold ${darkMode ? 'text-[#B3B3B3]' : 'text-gray-700'} mb-2`}>
                   Product Name *
@@ -329,12 +367,12 @@ export default function AddProductModal({
                   {addingProduct ? (
                     <>
                       <FaSync className="animate-spin" />
-                      Adding...
+                      {editProduct ? 'Updating...' : 'Adding...'}
                     </>
                   ) : (
                     <>
                       <FaPlus />
-                      Add Product
+                      {editProduct ? 'Update Product' : 'Add Product'}
                     </>
                   )}
                 </motion.button>

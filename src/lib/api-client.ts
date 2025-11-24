@@ -35,6 +35,23 @@ export async function fetchDonations(limit?: number) {
   return response.json()
 }
 
+export async function updateDonor(data: { id: string; name?: string; city?: string; state?: string; address?: string }) {
+  const response = await fetch(`${API_BASE}/donors`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  })
+  
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.error || 'Failed to update donor')
+  }
+  
+  return response.json()
+}
+
 export async function fetchStats() {
   const response = await fetch(`${API_BASE}/stats`)
   if (!response.ok) {
@@ -65,7 +82,7 @@ export async function fetchActivity(lastCheck?: string) {
 export async function addDonation(data: {
   donorName: string
   city?: string
-  county?: string
+  state?: string
   address?: string
   productId: string
   quantity: number
@@ -125,29 +142,6 @@ export async function deleteDonation(id: string) {
   return response.json()
 }
 
-export async function updateDonor(id: string, data: {
-  total_donated_value: number
-  total_products_donated: number
-  city?: string
-  county?: string
-  address?: string
-}) {
-  const response = await fetch(`${API_BASE}/donors/${id}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(data)
-  })
-  
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.error || 'Failed to update donor')
-  }
-  
-  return response.json()
-}
-
 export async function addProduct(data: {
   name: string
   category: string
@@ -166,6 +160,42 @@ export async function addProduct(data: {
   if (!response.ok) {
     const error = await response.json()
     throw new Error(error.error || 'Failed to add product')
+  }
+  
+  return response.json()
+}
+
+export async function updateProduct(id: string, data: {
+  name?: string
+  category?: string
+  value?: number
+  description?: string
+  image_url?: string
+}) {
+  const response = await fetch(`${API_BASE}/products/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  })
+  
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.error || 'Failed to update product')
+  }
+  
+  return response.json()
+}
+
+export async function deleteProduct(id: string) {
+  const response = await fetch(`${API_BASE}/products/${id}`, {
+    method: 'DELETE'
+  })
+  
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.error || 'Failed to delete product')
   }
   
   return response.json()
@@ -190,6 +220,43 @@ export async function addFireDepartment(data: {
   if (!response.ok) {
     const error = await response.json()
     throw new Error(error.error || 'Failed to add fire department')
+  }
+  
+  return response.json()
+}
+
+export async function updateFireDepartment(id: string, data: {
+  name?: string
+  city?: string
+  county?: string
+  address?: string
+  latitude?: string
+  longitude?: string
+}) {
+  const response = await fetch(`${API_BASE}/fire-departments/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  })
+  
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.error || 'Failed to update fire department')
+  }
+  
+  return response.json()
+}
+
+export async function deleteFireDepartment(id: string) {
+  const response = await fetch(`${API_BASE}/fire-departments/${id}`, {
+    method: 'DELETE'
+  })
+  
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.error || 'Failed to delete fire department')
   }
   
   return response.json()

@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS donors (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name TEXT NOT NULL,
   city TEXT, -- City name (e.g., "Los Angeles", "San Francisco")
-  county TEXT, -- California county name (e.g., "Los Angeles", "San Diego")
+  state TEXT, -- State name (e.g., "California", "New York")
   address TEXT, -- Full address
   latitude TEXT, -- Latitude coordinate
   longitude TEXT, -- Longitude coordinate

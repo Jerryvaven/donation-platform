@@ -25,7 +25,12 @@ export function useDashboard() {
     fireDepartmentsReached: 0,
     todaysProducts: 0,
     newDonorsToday: 0,
-    matchRate: 0
+    matchRate: 0,
+    totalDonatedValueGrowth: 0,
+    totalProductsDonatedGrowth: 0,
+    totalDonorsGrowth: 0,
+    matchedProductsGrowth: 0,
+    fireDepartmentsReachedGrowth: 0
   })
   const [recentDonors, setRecentDonors] = useState<RecentProductDonation[]>([])
   const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([])
@@ -179,15 +184,17 @@ export function useDashboard() {
       const formattedDonors: RecentProductDonation[] = response.data.map((d: any) => ({
         id: d.id,
         donorId: d.donor_id,
-        donorName: d.donors?.[0]?.name || 'Unknown Donor',
+        donorName: d.donors?.name || 'Unknown Donor',
         productId: d.product_id,
-        productName: d.products?.[0]?.name || 'Unknown Product',
-        productValue: d.products?.[0]?.value ? parseFloat(d.products[0].value.toString()) : 0,
+        productName: d.products?.name || 'Unknown Product',
+        productValue: d.products?.value ? parseFloat(d.products.value.toString()) : 0,
+        productImage: d.products?.image_url,
         fireDepartmentId: d.fire_department_id || null,
-        fireDepartmentName: d.fire_departments?.[0]?.name || 'Pending Match',
+        fireDepartmentName: d.fire_departments?.name || 'Pending Match',
         quantity: d.quantity || 1,
-        city: d.donors?.[0]?.city || 'N/A',
-        county: d.donors?.[0]?.county || 'N/A',
+        city: d.donors?.city || 'N/A',
+        state: d.donors?.state || 'N/A',
+        address: d.donors?.address || '',
         date: d.donation_date,
         status: d.matched ? 'MATCHED' : 'PENDING'
       }))
@@ -245,7 +252,7 @@ export function useDashboard() {
         fireDepartmentName: d.fire_departments?.[0]?.name || 'Pending Match',
         quantity: d.quantity || 1,
         city: d.donors?.[0]?.city || 'N/A',
-        county: d.donors?.[0]?.county || 'N/A',
+        state: (d.donors?.[0] as any)?.state || 'N/A',
         date: d.donation_date,
         status: d.matched ? 'MATCHED' : 'PENDING'
       })

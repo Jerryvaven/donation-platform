@@ -11,14 +11,9 @@ import {
   FaFire,
   FaCheckCircle,
   FaSearch,
-  FaTrophy,
-  FaMedal,
-  FaAward,
   FaSortAmountDown,
   FaSortAmountUp,
   FaCalendarAlt,
-  FaChevronDown,
-  FaChevronUp,
   FaChevronLeft,
   FaChevronRight,
 } from "react-icons/fa";
@@ -35,11 +30,12 @@ export default function Leaderboard() {
   const [darkMode, setDarkMode] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [timePeriod, setTimePeriod] = useState<TimePeriod>("all");
-  const [sortBy, setSortBy] = useState<SortBy>("amount");
+  const [sortBy, setSortBy] = useState<SortBy>("date");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [expandedDonor, setExpandedDonor] = useState<string | null>(null);
   const [donorPage, setDonorPage] = useState(1);
   const [matchedPage, setMatchedPage] = useState(1);
+  const [donationPage, setDonationPage] = useState(1);
 
   // Apply dark mode to the entire page
   useEffect(() => {
@@ -107,7 +103,7 @@ export default function Leaderboard() {
       (donor) =>
         donor.name.toLowerCase().includes(query) ||
         donor.city?.toLowerCase().includes(query) ||
-        donor.county?.toLowerCase().includes(query)
+        donor.state?.toLowerCase().includes(query)
     );
   }, [filteredByTime, searchQuery]);
 
@@ -121,9 +117,16 @@ export default function Leaderboard() {
       } else if (sortBy === "products") {
         comparison = a.total_products_donated - b.total_products_donated;
       } else if (sortBy === "date") {
-        const aDate = a.product_donations?.[0]?.donation_date || "";
-        const bDate = b.product_donations?.[0]?.donation_date || "";
-        comparison = new Date(aDate).getTime() - new Date(bDate).getTime();
+        // Find the latest donation date for each donor
+        const aLatestDate = a.product_donations?.reduce((latest, pd) => {
+          const pdDate = new Date(pd.donation_date).getTime();
+          return pdDate > latest ? pdDate : latest;
+        }, 0) || 0;
+        const bLatestDate = b.product_donations?.reduce((latest, pd) => {
+          const pdDate = new Date(pd.donation_date).getTime();
+          return pdDate > latest ? pdDate : latest;
+        }, 0) || 0;
+        comparison = aLatestDate - bLatestDate;
       }
 
       return sortOrder === "desc" ? -comparison : comparison;
@@ -167,6 +170,13 @@ export default function Leaderboard() {
     });
   });
 
+  // Sort donations by date for latest donations list
+  const sortedDonationsByDate = useMemo(() => {
+    return [...allProductDonations].sort((a, b) => 
+      new Date(b.donation_date).getTime() - new Date(a.donation_date).getTime()
+    );
+  }, [allProductDonations]);
+
   // Separate matched and unmatched donations
   const matchedDonations = allProductDonations.filter((d) => d.matched);
   const totalRaised = sortedDonors.reduce(
@@ -196,6 +206,7 @@ export default function Leaderboard() {
   // Pagination calculations
   const totalDonorPages = Math.ceil(sortedDonors.length / ITEMS_PER_PAGE);
   const totalMatchedPages = Math.ceil(matchedDonations.length / ITEMS_PER_PAGE);
+  const totalDonationPages = Math.ceil(sortedDonationsByDate.length / ITEMS_PER_PAGE);
 
   const paginatedDonors = sortedDonors.slice(
     (donorPage - 1) * ITEMS_PER_PAGE,
@@ -207,10 +218,16 @@ export default function Leaderboard() {
     matchedPage * ITEMS_PER_PAGE
   );
 
+  const paginatedDonations = sortedDonationsByDate.slice(
+    (donationPage - 1) * ITEMS_PER_PAGE,
+    donationPage * ITEMS_PER_PAGE
+  );
+
   // Reset pages when filters change
   useEffect(() => {
     setDonorPage(1);
     setMatchedPage(1);
+    setDonationPage(1);
   }, [searchQuery, timePeriod, sortBy, sortOrder]);
 
   if (loading) {
@@ -562,249 +579,102 @@ export default function Leaderboard() {
               className="divide-y max-h-[600px] overflow-y-auto scrollbar-hide"
               style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
-              {paginatedDonors.map((donor, index) => {
-                const actualIndex = (donorPage - 1) * ITEMS_PER_PAGE + index;
-                const isExpanded = expandedDonor === donor.id;
-                const getMedalIcon = (position: number) => {
-                  if (position === 0)
-                    return <FaTrophy className="text-yellow-400" size={16} />;
-                  if (position === 1)
-                    return <FaMedal className="text-gray-400" size={16} />;
-                  if (position === 2)
-                    return <FaAward className="text-orange-400" size={16} />;
-                  return null;
-                };
+              {paginatedDonations.map((donation, index) => {
+                const actualIndex = (donationPage - 1) * ITEMS_PER_PAGE + index;
 
                 return (
                   <div
-                    key={donor.id}
+                    key={`${donation.id}-${index}`}
                     className={`px-6 py-4 transition-all ${
                       darkMode
                         ? "divide-[#333333] hover:bg-[#242424]"
                         : "divide-gray-200 hover:bg-gray-50"
                     }`}
                   >
-                    <div
-                      className="flex items-start justify-between cursor-pointer"
-                      onClick={() =>
-                        setExpandedDonor(isExpanded ? null : donor.id)
-                      }
-                    >
-                      <div className="flex items-start gap-3 flex-1">
-                        <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 relative ${
-                            actualIndex < 3
-                              ? actualIndex === 0
-                                ? "bg-gradient-to-br from-yellow-400 to-yellow-600 text-yellow-900 shadow-lg shadow-yellow-500/50"
-                                : actualIndex === 1
-                                ? "bg-gradient-to-br from-gray-300 to-gray-500 text-gray-800 shadow-lg shadow-gray-500/50"
-                                : "bg-gradient-to-br from-orange-300 to-orange-500 text-orange-800 shadow-lg shadow-orange-500/50"
-                              : darkMode
-                              ? "bg-[#3B82F6] text-white"
-                              : "bg-black text-white"
-                          }`}
-                        >
-                          {actualIndex + 1}
-                          {actualIndex < 3 && (
-                            <div className="absolute -top-1 -right-1">
-                              {getMedalIcon(actualIndex)}
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <div
-                              className={`font-semibold ${
-                                darkMode ? "text-white" : "text-gray-900"
-                              }`}
-                            >
-                              {donor.name}
-                            </div>
-                            {actualIndex < 3 && (
-                              <span
-                                className={`text-xs px-2 py-0.5 rounded-full ${
-                                  actualIndex === 0
-                                    ? "bg-yellow-400/20 text-yellow-400"
-                                    : actualIndex === 1
-                                    ? "bg-gray-400/20 text-gray-400"
-                                    : "bg-orange-400/20 text-orange-400"
-                                }`}
-                              >
-                                Top {actualIndex + 1}
-                              </span>
-                            )}
-                          </div>
-                          <div
-                            className={`text-sm ${
-                              darkMode ? "text-[#808080]" : "text-gray-500"
-                            }`}
-                          >
-                            {donor.city && donor.county
-                              ? `${donor.city}, ${donor.county}`
-                              : donor.county || donor.city || "California"}
-                          </div>
-                          {!isExpanded &&
-                            donor.product_donations &&
-                            donor.product_donations.length > 0 && (
-                              <div
-                                className={`text-xs mt-1 ${
-                                  darkMode ? "text-[#B3B3B3]" : "text-gray-600"
-                                }`}
-                              >
-                                {donor.product_donations
-                                  .map((pd) => pd.products?.name)
-                                  .filter(Boolean)
-                                  .slice(0, 2)
-                                  .join(", ")}
-                                {donor.product_donations.length > 2 && "..."}
-                              </div>
-                            )}
-                        </div>
-                      </div>
-                      <div className="text-right flex items-center gap-3">
-                        <div>
-                          <div
-                            className={`text-lg font-bold ${
-                              darkMode ? "text-[#22C55E]" : "text-green-600"
-                            }`}
-                          >
-                            ${donor.total_donated_value.toLocaleString()}
-                          </div>
-                          <div
-                            className={`text-xs ${
-                              darkMode ? "text-[#808080]" : "text-gray-500"
-                            }`}
-                          >
-                            {donor.total_products_donated} product
-                            {donor.total_products_donated !== 1 ? "s" : ""}
-                          </div>
-                        </div>
-                        {isExpanded ? (
-                          <FaChevronUp
-                            className={
-                              darkMode ? "text-[#808080]" : "text-gray-500"
-                            }
+                    <div className="flex items-start gap-3">
+                      <div
+                        className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center flex-shrink-0"
+                      >
+                        {donation.products?.image_url ? (
+                          <img
+                            src={donation.products.image_url}
+                            alt={donation.products.name}
+                            className="w-full h-full object-cover"
                           />
                         ) : (
-                          <FaChevronDown
-                            className={
-                              darkMode ? "text-[#808080]" : "text-gray-500"
-                            }
-                          />
+                          <div
+                            className={`w-full h-full flex items-center justify-center font-semibold text-white ${
+                              darkMode ? "bg-[#3B82F6]" : "bg-gray-900"
+                            }`}
+                          >
+                            {donation.products?.name.charAt(0).toUpperCase() || 'P'}
+                          </div>
                         )}
                       </div>
-                    </div>
-
-                    {/* Expanded Details */}
-                    {isExpanded &&
-                      donor.product_donations &&
-                      donor.product_donations.length > 0 && (
+                      <div className="flex-1">
                         <div
-                          className={`mt-4 pt-4 border-t ${
-                            darkMode ? "border-[#333333]" : "border-gray-200"
-                          } space-y-2`}
+                          className={`font-semibold ${
+                            darkMode ? "text-white" : "text-gray-900"
+                          }`}
                         >
-                          <div
-                            className={`text-sm font-semibold ${
-                              darkMode ? "text-[#B3B3B3]" : "text-gray-700"
-                            } mb-2`}
-                          >
-                            Donation History
-                          </div>
-                          <div
-                            className="max-h-[300px] overflow-y-auto space-y-2 scrollbar-hide"
-                            style={{
-                              scrollbarWidth: "none",
-                              msOverflowStyle: "none",
-                            }}
-                          >
-                            {donor.product_donations.map((pd, pdIndex) => (
-                              <div
-                                key={pdIndex}
-                                className={`flex justify-between items-center text-sm p-2 rounded ${
-                                  darkMode ? "bg-[#242424]" : "bg-gray-50"
-                                }`}
-                              >
-                                <div className="flex-1">
-                                  <div
-                                    className={`font-medium ${
-                                      darkMode ? "text-white" : "text-gray-900"
-                                    }`}
-                                  >
-                                    {pd.products?.name || "Product"} ×{" "}
-                                    {pd.quantity}
-                                  </div>
-                                  {pd.products?.description && (
-                                    <div
-                                      className={`text-xs mt-1 italic ${
-                                        darkMode
-                                          ? "text-[#B3B3B3]"
-                                          : "text-gray-600"
-                                      }`}
-                                    >
-                                      {pd.products.description}
-                                    </div>
-                                  )}
-                                  <div
-                                    className={`text-xs ${
-                                      darkMode
-                                        ? "text-[#808080]"
-                                        : "text-gray-500"
-                                    }`}
-                                  >
-                                    {new Date(
-                                      pd.donation_date
-                                    ).toLocaleDateString()}
-                                  </div>
-                                  {pd.matched && (
-                                    <div className={`mt-1`}>
-                                      <span
-                                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                                          darkMode
-                                            ? "bg-[#22C55E]/20 text-[#22C55E]"
-                                            : "bg-green-100 text-green-700"
-                                        }`}
-                                      >
-                                        ✓ Matched
-                                      </span>
-                                    </div>
-                                  )}
-                                </div>
-                                <div
-                                  className={`font-bold ${
-                                    darkMode
-                                      ? "text-[#22C55E]"
-                                      : "text-green-600"
-                                  }`}
-                                >
-                                  $
-                                  {(
-                                    (pd.products?.value || 0) * pd.quantity
-                                  ).toLocaleString()}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
+                          {donation.donorName}
                         </div>
-                      )}
+                        <div
+                          className={`text-sm ${
+                            darkMode ? "text-[#B3B3B3]" : "text-gray-600"
+                          }`}
+                        >
+                          Donated {donation.products?.name || 'Product'} × {donation.quantity}
+                        </div>
+                        <div
+                          className={`text-xs ${
+                            darkMode ? "text-[#808080]" : "text-gray-500"
+                          }`}
+                        >
+                          {new Date(donation.donation_date).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric'
+                          })}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div
+                          className={`text-lg font-bold ${
+                            darkMode ? "text-[#22C55E]" : "text-green-600"
+                          }`}
+                        >
+                          ${(donation.products?.value || 0) * donation.quantity}
+                        </div>
+                        <div
+                          className={`text-xs ${
+                            donation.matched
+                              ? (darkMode ? "text-[#22C55E]" : "text-green-600")
+                              : (darkMode ? "text-[#808080]" : "text-gray-500")
+                          }`}
+                        >
+                          {donation.matched ? 'Matched' : 'Pending'}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 );
               })}
-              {sortedDonors.length === 0 && (
+              {sortedDonationsByDate.length === 0 && (
                 <div className="px-6 py-12 text-center">
                   <div
                     className={`text-sm ${
                       darkMode ? "text-[#808080]" : "text-gray-500"
                     }`}
                   >
-                    No donors found matching your filters
+                    No donations found matching your filters
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Pagination for Donors */}
-            {totalDonorPages > 1 && (
+            {/* Pagination for Donations */}
+            {totalDonationPages > 1 && sortedDonationsByDate.length % ITEMS_PER_PAGE !== 1 && (
               <div
                 className={`px-6 py-4 border-t ${
                   darkMode
@@ -817,16 +687,16 @@ export default function Leaderboard() {
                     darkMode ? "text-[#B3B3B3]" : "text-gray-600"
                   }`}
                 >
-                  Showing {(donorPage - 1) * ITEMS_PER_PAGE + 1}-
-                  {Math.min(donorPage * ITEMS_PER_PAGE, sortedDonors.length)} of{" "}
-                  {sortedDonors.length}
+                  Showing {(donationPage - 1) * ITEMS_PER_PAGE + 1}-
+                  {Math.min(donationPage * ITEMS_PER_PAGE, sortedDonationsByDate.length)} of{" "}
+                  {sortedDonationsByDate.length}
                 </div>
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => setDonorPage((p) => Math.max(1, p - 1))}
-                    disabled={donorPage === 1}
+                    onClick={() => setDonationPage((p) => Math.max(1, p - 1))}
+                    disabled={donationPage === 1}
                     className={`px-3 py-1 rounded-lg transition-colors flex items-center gap-1 ${
-                      donorPage === 1
+                      donationPage === 1
                         ? darkMode
                           ? "bg-[#1E1E1E] text-[#666666] cursor-not-allowed"
                           : "bg-gray-100 text-gray-400 cursor-not-allowed"
@@ -844,16 +714,16 @@ export default function Leaderboard() {
                       darkMode ? "text-white" : "text-gray-900"
                     }`}
                   >
-                    Page {donorPage} of {totalDonorPages}
+                    Page {donationPage} of {totalDonationPages}
                   </div>
 
                   <button
                     onClick={() =>
-                      setDonorPage((p) => Math.min(totalDonorPages, p + 1))
+                      setDonationPage((p) => Math.min(totalDonationPages, p + 1))
                     }
-                    disabled={donorPage === totalDonorPages}
+                    disabled={donationPage === totalDonationPages}
                     className={`px-3 py-1 rounded-lg transition-colors flex items-center gap-1 ${
-                      donorPage === totalDonorPages
+                      donationPage === totalDonationPages
                         ? darkMode
                           ? "bg-[#1E1E1E] text-[#666666] cursor-not-allowed"
                           : "bg-gray-100 text-gray-400 cursor-not-allowed"
@@ -976,7 +846,7 @@ export default function Leaderboard() {
             </div>
 
             {/* Pagination for Matched Donations */}
-            {totalMatchedPages > 1 && (
+            {totalMatchedPages > 1 && matchedDonations.length % ITEMS_PER_PAGE !== 1 && (
               <div
                 className={`px-6 py-4 border-t ${
                   darkMode

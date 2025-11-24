@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FaUserPlus, FaTimes, FaSync, FaCheckCircle, FaPlus } from 'react-icons/fa'
-import { fetchProducts, fetchFireDepartments, addDonation, updateDonation } from '@/lib/api-client'
+import { fetchProducts, fetchFireDepartments, addDonation, updateDonation, updateDonor } from '@/lib/api-client'
 import AddProductModal from './AddProductModal'
 import AddFireStationModal from './AddFireStationModal'
 import type { Product, FireDepartment } from '@/types'
@@ -19,7 +19,8 @@ interface ProductDonation {
   fireDepartmentName: string
   quantity: number
   city: string
-  county: string
+  state: string
+  address?: string
   date: string
   status: 'MATCHED' | 'PENDING'
 }
@@ -43,7 +44,7 @@ export default function AddProductDonationModal({
 }: AddProductDonationModalProps) {
   const [donorName, setDonorName] = useState('')
   const [city, setCity] = useState('')
-  const [county, setCounty] = useState('')
+  const [state, setState] = useState('')
   const [address, setAddress] = useState('')
   const [selectedProduct, setSelectedProduct] = useState('')
   const [quantity, setQuantity] = useState('1')
@@ -95,9 +96,10 @@ export default function AddProductDonationModal({
 
   useEffect(() => {
     if ((mode === 'edit' || mode === 'view') && donation) {
-      setDonorName(donation.donorName)
-      setCity(donation.city)
-      setCounty(donation.county)
+      setDonorName(donation.donorName || '')
+      setCity(donation.city || '')
+      setState(donation.state || '')
+      setAddress(donation.address || '')
       setSelectedProduct(donation.productId)
       setQuantity(donation.quantity.toString())
       setMatched(donation.status === 'MATCHED')
@@ -112,7 +114,7 @@ export default function AddProductDonationModal({
       // Reset form for add
       setDonorName('')
       setCity('')
-      setCounty('')
+      setState('')
       setAddress('')
       setSelectedProduct('')
       setQuantity('1')
@@ -127,13 +129,11 @@ export default function AddProductDonationModal({
     e.preventDefault()
     setSaving(true)
 
-    // Capture mode and donation at the start to prevent state changes during async operations
     const currentMode = mode
     const currentDonation = donation
 
     try {
       if (currentMode === 'edit' && currentDonation && currentDonation.id) {
-        // Update existing donation
         
         await updateDonation(currentDonation.id, {
           product_id: selectedProduct,
@@ -141,18 +141,26 @@ export default function AddProductDonationModal({
           matched,
           fire_department_id: matched ? selectedFireDepartment : undefined
         })
+
+        // Update donor information
+        await updateDonor({
+          id: currentDonation.donorId,
+          name: donorName,
+          city,
+          state,
+          address
+        })
+
         setMessage({ type: 'success', text: 'Donation updated successfully!' })
       } else if (currentMode === 'edit' && currentDonation && !currentDonation.id) {
-        // Error case: edit mode but no ID
         setMessage({ type: 'error', text: 'Cannot update donation: missing ID' })
         setSaving(false)
         return
       } else {
-        // Add new donation
         await addDonation({
           donorName,
           city,
-          county,
+          state,
           address,
           productId: selectedProduct,
           quantity: parseInt(quantity),
@@ -162,19 +170,16 @@ export default function AddProductDonationModal({
         setMessage({ type: 'success', text: 'Product donation added successfully!' })
       }
 
-      // Refresh data
       onDataRefresh()
 
-      // Close modal after a short delay
       setTimeout(() => {
         setShowAddDonorModal(false)
       }, 1500)
 
-      // Reset form only for add mode
       if (mode === 'add') {
         setDonorName('')
         setCity('')
-        setCounty('')
+        setState('')
         setAddress('')
         setSelectedProduct('')
         setQuantity('1')
@@ -281,7 +286,7 @@ export default function AddProductDonationModal({
                     value={donorName}
                     onChange={(e) => setDonorName(e.target.value)}
                     required
-                    disabled={mode === 'edit' || mode === 'view'}
+                    readOnly={mode === 'view'}
                     className={`w-full px-4 py-2.5 ${darkMode ? 'bg-[#242424] border-[#333333] text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-lg focus:ring-2 ${darkMode ? 'focus:ring-[#3B82F6] focus:border-[#3B82F6]' : 'focus:ring-black focus:border-black'} transition-all outline-none disabled:opacity-60 disabled:cursor-not-allowed`}
                     placeholder="Enter donor name"
                   />
@@ -296,24 +301,24 @@ export default function AddProductDonationModal({
                     id="city"
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
-                    disabled={mode === 'edit' || mode === 'view'}
+                    readOnly={mode === 'view'}
                     className={`w-full px-4 py-2.5 ${darkMode ? 'bg-[#242424] border-[#333333] text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-lg focus:ring-2 ${darkMode ? 'focus:ring-[#3B82F6] focus:border-[#3B82F6]' : 'focus:ring-black focus:border-black'} transition-all outline-none disabled:opacity-60 disabled:cursor-not-allowed`}
                     placeholder="City"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="county" className={`block text-sm font-semibold ${darkMode ? 'text-[#B3B3B3]' : 'text-gray-700'} mb-2`}>
-                    County
+                  <label htmlFor="state" className={`block text-sm font-semibold ${darkMode ? 'text-[#B3B3B3]' : 'text-gray-700'} mb-2`}>
+                    State
                   </label>
                   <input
                     type="text"
-                    id="county"
-                    value={county}
-                    onChange={(e) => setCounty(e.target.value)}
-                    disabled={mode === 'edit' || mode === 'view'}
+                    id="state"
+                    value={state}
+                    onChange={(e) => setState(e.target.value)}
+                    readOnly={mode === 'view'}
                     className={`w-full px-4 py-2.5 ${darkMode ? 'bg-[#242424] border-[#333333] text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-lg focus:ring-2 ${darkMode ? 'focus:ring-[#3B82F6] focus:border-[#3B82F6]' : 'focus:ring-black focus:border-black'} transition-all outline-none disabled:opacity-60 disabled:cursor-not-allowed`}
-                    placeholder="County"
+                    placeholder="State"
                   />
                 </div>
 
@@ -326,7 +331,7 @@ export default function AddProductDonationModal({
                     id="address"
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
-                    disabled={mode === 'edit' || mode === 'view'}
+                    readOnly={mode === 'view'}
                     className={`w-full px-4 py-2.5 ${darkMode ? 'bg-[#242424] border-[#333333] text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-lg focus:ring-2 ${darkMode ? 'focus:ring-[#3B82F6] focus:border-[#3B82F6]' : 'focus:ring-black focus:border-black'} transition-all outline-none disabled:opacity-60 disabled:cursor-not-allowed`}
                     placeholder="Full address"
                   />
