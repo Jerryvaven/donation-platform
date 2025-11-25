@@ -118,14 +118,16 @@ export default function Leaderboard() {
         comparison = a.total_products_donated - b.total_products_donated;
       } else if (sortBy === "date") {
         // Find the latest donation date for each donor
-        const aLatestDate = a.product_donations?.reduce((latest, pd) => {
-          const pdDate = new Date(pd.donation_date).getTime();
-          return pdDate > latest ? pdDate : latest;
-        }, 0) || 0;
-        const bLatestDate = b.product_donations?.reduce((latest, pd) => {
-          const pdDate = new Date(pd.donation_date).getTime();
-          return pdDate > latest ? pdDate : latest;
-        }, 0) || 0;
+        const aLatestDate =
+          a.product_donations?.reduce((latest, pd) => {
+            const pdDate = new Date(pd.donation_date).getTime();
+            return pdDate > latest ? pdDate : latest;
+          }, 0) || 0;
+        const bLatestDate =
+          b.product_donations?.reduce((latest, pd) => {
+            const pdDate = new Date(pd.donation_date).getTime();
+            return pdDate > latest ? pdDate : latest;
+          }, 0) || 0;
         comparison = aLatestDate - bLatestDate;
       }
 
@@ -172,8 +174,10 @@ export default function Leaderboard() {
 
   // Sort donations by date for latest donations list
   const sortedDonationsByDate = useMemo(() => {
-    return [...allProductDonations].sort((a, b) => 
-      new Date(b.donation_date).getTime() - new Date(a.donation_date).getTime()
+    return [...allProductDonations].sort(
+      (a, b) =>
+        new Date(b.donation_date).getTime() -
+        new Date(a.donation_date).getTime()
     );
   }, [allProductDonations]);
 
@@ -206,7 +210,9 @@ export default function Leaderboard() {
   // Pagination calculations
   const totalDonorPages = Math.ceil(sortedDonors.length / ITEMS_PER_PAGE);
   const totalMatchedPages = Math.ceil(matchedDonations.length / ITEMS_PER_PAGE);
-  const totalDonationPages = Math.ceil(sortedDonationsByDate.length / ITEMS_PER_PAGE);
+  const totalDonationPages = Math.ceil(
+    sortedDonationsByDate.length / ITEMS_PER_PAGE
+  );
 
   const paginatedDonors = sortedDonors.slice(
     (donorPage - 1) * ITEMS_PER_PAGE,
@@ -257,21 +263,20 @@ export default function Leaderboard() {
           darkMode ? "bg-[#1E1E1E] border-b border-[#333333]" : "bg-white"
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex justify-between items-center">
-          <div>
-            <h1
-              className={`text-3xl font-bold ${
-                darkMode ? "text-white" : "text-gray-900"
-              }`}
-            >
-              Donor Leaderboard
-            </h1>
+        <div className="max-w-7xl mx-auto px-2 sm:px-2 lg:px-2 flex justify-between items-center">
+          <div className="flex items-center ">
+            <img
+              src="/assets/Dialed & Defend A.png"
+              alt="Dialed & Defend California"
+              className="h-30 w-auto object-contain"
+            />
             <p
-              className={`text-sm mt-1 ${
+              className={`text-md mt-6 ${
                 darkMode ? "text-[#B3B3B3]" : "text-gray-600"
               }`}
             >
-              Celebrating Our Generous Contributors
+              Supporting the Strength and Recovery of California's First
+              Responders
             </p>
           </div>
           {/* Dark Mode Toggle */}
@@ -592,9 +597,7 @@ export default function Leaderboard() {
                     }`}
                   >
                     <div className="flex items-start gap-3">
-                      <div
-                        className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center flex-shrink-0"
-                      >
+                      <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center flex-shrink-0">
                         {donation.products?.image_url ? (
                           <img
                             src={donation.products.image_url}
@@ -607,7 +610,8 @@ export default function Leaderboard() {
                               darkMode ? "bg-[#3B82F6]" : "bg-gray-900"
                             }`}
                           >
-                            {donation.products?.name.charAt(0).toUpperCase() || 'P'}
+                            {donation.products?.name.charAt(0).toUpperCase() ||
+                              "P"}
                           </div>
                         )}
                       </div>
@@ -624,18 +628,22 @@ export default function Leaderboard() {
                             darkMode ? "text-[#B3B3B3]" : "text-gray-600"
                           }`}
                         >
-                          Donated {donation.products?.name || 'Product'} × {donation.quantity}
+                          Donated {donation.products?.name || "Product"} ×{" "}
+                          {donation.quantity}
                         </div>
                         <div
                           className={`text-xs ${
                             darkMode ? "text-[#808080]" : "text-gray-500"
                           }`}
                         >
-                          {new Date(donation.donation_date).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric'
-                          })}
+                          {new Date(donation.donation_date).toLocaleDateString(
+                            "en-US",
+                            {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            }
+                          )}
                         </div>
                       </div>
                       <div className="text-right">
@@ -649,11 +657,15 @@ export default function Leaderboard() {
                         <div
                           className={`text-xs ${
                             donation.matched
-                              ? (darkMode ? "text-[#22C55E]" : "text-green-600")
-                              : (darkMode ? "text-[#808080]" : "text-gray-500")
+                              ? darkMode
+                                ? "text-[#22C55E]"
+                                : "text-green-600"
+                              : darkMode
+                              ? "text-[#808080]"
+                              : "text-gray-500"
                           }`}
                         >
-                          {donation.matched ? 'Matched' : 'Pending'}
+                          {donation.matched ? "Matched" : "Pending"}
                         </div>
                       </div>
                     </div>
@@ -674,70 +686,76 @@ export default function Leaderboard() {
             </div>
 
             {/* Pagination for Donations */}
-            {totalDonationPages > 1 && sortedDonationsByDate.length % ITEMS_PER_PAGE !== 1 && (
-              <div
-                className={`px-6 py-4 border-t ${
-                  darkMode
-                    ? "border-[#333333] bg-[#242424]"
-                    : "border-gray-200 bg-gray-50"
-                } flex items-center justify-between`}
-              >
+            {totalDonationPages > 1 &&
+              sortedDonationsByDate.length % ITEMS_PER_PAGE !== 1 && (
                 <div
-                  className={`text-sm ${
-                    darkMode ? "text-[#B3B3B3]" : "text-gray-600"
-                  }`}
+                  className={`px-6 py-4 border-t ${
+                    darkMode
+                      ? "border-[#333333] bg-[#242424]"
+                      : "border-gray-200 bg-gray-50"
+                  } flex items-center justify-between`}
                 >
-                  Showing {(donationPage - 1) * ITEMS_PER_PAGE + 1}-
-                  {Math.min(donationPage * ITEMS_PER_PAGE, sortedDonationsByDate.length)} of{" "}
-                  {sortedDonationsByDate.length}
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setDonationPage((p) => Math.max(1, p - 1))}
-                    disabled={donationPage === 1}
-                    className={`px-3 py-1 rounded-lg transition-colors flex items-center gap-1 ${
-                      donationPage === 1
-                        ? darkMode
-                          ? "bg-[#1E1E1E] text-[#666666] cursor-not-allowed"
-                          : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : darkMode
-                        ? "bg-[#242424] text-white hover:bg-[#333333]"
-                        : "bg-gray-200 text-gray-900 hover:bg-gray-300"
-                    }`}
-                  >
-                    <FaChevronLeft size={12} />
-                    Prev
-                  </button>
-
                   <div
-                    className={`text-sm font-medium ${
-                      darkMode ? "text-white" : "text-gray-900"
+                    className={`text-sm ${
+                      darkMode ? "text-[#B3B3B3]" : "text-gray-600"
                     }`}
                   >
-                    Page {donationPage} of {totalDonationPages}
+                    Showing {(donationPage - 1) * ITEMS_PER_PAGE + 1}-
+                    {Math.min(
+                      donationPage * ITEMS_PER_PAGE,
+                      sortedDonationsByDate.length
+                    )}{" "}
+                    of {sortedDonationsByDate.length}
                   </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setDonationPage((p) => Math.max(1, p - 1))}
+                      disabled={donationPage === 1}
+                      className={`px-3 py-1 rounded-lg transition-colors flex items-center gap-1 ${
+                        donationPage === 1
+                          ? darkMode
+                            ? "bg-[#1E1E1E] text-[#666666] cursor-not-allowed"
+                            : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : darkMode
+                          ? "bg-[#242424] text-white hover:bg-[#333333]"
+                          : "bg-gray-200 text-gray-900 hover:bg-gray-300"
+                      }`}
+                    >
+                      <FaChevronLeft size={12} />
+                      Prev
+                    </button>
 
-                  <button
-                    onClick={() =>
-                      setDonationPage((p) => Math.min(totalDonationPages, p + 1))
-                    }
-                    disabled={donationPage === totalDonationPages}
-                    className={`px-3 py-1 rounded-lg transition-colors flex items-center gap-1 ${
-                      donationPage === totalDonationPages
-                        ? darkMode
-                          ? "bg-[#1E1E1E] text-[#666666] cursor-not-allowed"
-                          : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : darkMode
-                        ? "bg-[#242424] text-white hover:bg-[#333333]"
-                        : "bg-gray-200 text-gray-900 hover:bg-gray-300"
-                    }`}
-                  >
-                    Next
-                    <FaChevronRight size={12} />
-                  </button>
+                    <div
+                      className={`text-sm font-medium ${
+                        darkMode ? "text-white" : "text-gray-900"
+                      }`}
+                    >
+                      Page {donationPage} of {totalDonationPages}
+                    </div>
+
+                    <button
+                      onClick={() =>
+                        setDonationPage((p) =>
+                          Math.min(totalDonationPages, p + 1)
+                        )
+                      }
+                      disabled={donationPage === totalDonationPages}
+                      className={`px-3 py-1 rounded-lg transition-colors flex items-center gap-1 ${
+                        donationPage === totalDonationPages
+                          ? darkMode
+                            ? "bg-[#1E1E1E] text-[#666666] cursor-not-allowed"
+                            : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : darkMode
+                          ? "bg-[#242424] text-white hover:bg-[#333333]"
+                          : "bg-gray-200 text-gray-900 hover:bg-gray-300"
+                      }`}
+                    >
+                      Next
+                      <FaChevronRight size={12} />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
           </div>
 
           {/* Matched Donations Column */}
@@ -846,73 +864,76 @@ export default function Leaderboard() {
             </div>
 
             {/* Pagination for Matched Donations */}
-            {totalMatchedPages > 1 && matchedDonations.length % ITEMS_PER_PAGE !== 1 && (
-              <div
-                className={`px-6 py-4 border-t ${
-                  darkMode
-                    ? "border-[#333333] bg-[#242424]"
-                    : "border-gray-200 bg-gray-50"
-                } flex items-center justify-between`}
-              >
+            {totalMatchedPages > 1 &&
+              matchedDonations.length % ITEMS_PER_PAGE !== 1 && (
                 <div
-                  className={`text-sm ${
-                    darkMode ? "text-[#B3B3B3]" : "text-gray-600"
-                  }`}
+                  className={`px-6 py-4 border-t ${
+                    darkMode
+                      ? "border-[#333333] bg-[#242424]"
+                      : "border-gray-200 bg-gray-50"
+                  } flex items-center justify-between`}
                 >
-                  Showing {(matchedPage - 1) * ITEMS_PER_PAGE + 1}-
-                  {Math.min(
-                    matchedPage * ITEMS_PER_PAGE,
-                    matchedDonations.length
-                  )}{" "}
-                  of {matchedDonations.length}
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setMatchedPage((p) => Math.max(1, p - 1))}
-                    disabled={matchedPage === 1}
-                    className={`px-3 py-1 rounded-lg transition-colors flex items-center gap-1 ${
-                      matchedPage === 1
-                        ? darkMode
-                          ? "bg-[#1E1E1E] text-[#666666] cursor-not-allowed"
-                          : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : darkMode
-                        ? "bg-[#242424] text-white hover:bg-[#333333]"
-                        : "bg-gray-200 text-gray-900 hover:bg-gray-300"
-                    }`}
-                  >
-                    <FaChevronLeft size={12} />
-                    Prev
-                  </button>
-
                   <div
-                    className={`text-sm font-medium ${
-                      darkMode ? "text-white" : "text-gray-900"
+                    className={`text-sm ${
+                      darkMode ? "text-[#B3B3B3]" : "text-gray-600"
                     }`}
                   >
-                    Page {matchedPage} of {totalMatchedPages}
+                    Showing {(matchedPage - 1) * ITEMS_PER_PAGE + 1}-
+                    {Math.min(
+                      matchedPage * ITEMS_PER_PAGE,
+                      matchedDonations.length
+                    )}{" "}
+                    of {matchedDonations.length}
                   </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setMatchedPage((p) => Math.max(1, p - 1))}
+                      disabled={matchedPage === 1}
+                      className={`px-3 py-1 rounded-lg transition-colors flex items-center gap-1 ${
+                        matchedPage === 1
+                          ? darkMode
+                            ? "bg-[#1E1E1E] text-[#666666] cursor-not-allowed"
+                            : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : darkMode
+                          ? "bg-[#242424] text-white hover:bg-[#333333]"
+                          : "bg-gray-200 text-gray-900 hover:bg-gray-300"
+                      }`}
+                    >
+                      <FaChevronLeft size={12} />
+                      Prev
+                    </button>
 
-                  <button
-                    onClick={() =>
-                      setMatchedPage((p) => Math.min(totalMatchedPages, p + 1))
-                    }
-                    disabled={matchedPage === totalMatchedPages}
-                    className={`px-3 py-1 rounded-lg transition-colors flex items-center gap-1 ${
-                      matchedPage === totalMatchedPages
-                        ? darkMode
-                          ? "bg-[#1E1E1E] text-[#666666] cursor-not-allowed"
-                          : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : darkMode
-                        ? "bg-[#242424] text-white hover:bg-[#333333]"
-                        : "bg-gray-200 text-gray-900 hover:bg-gray-300"
-                    }`}
-                  >
-                    Next
-                    <FaChevronRight size={12} />
-                  </button>
+                    <div
+                      className={`text-sm font-medium ${
+                        darkMode ? "text-white" : "text-gray-900"
+                      }`}
+                    >
+                      Page {matchedPage} of {totalMatchedPages}
+                    </div>
+
+                    <button
+                      onClick={() =>
+                        setMatchedPage((p) =>
+                          Math.min(totalMatchedPages, p + 1)
+                        )
+                      }
+                      disabled={matchedPage === totalMatchedPages}
+                      className={`px-3 py-1 rounded-lg transition-colors flex items-center gap-1 ${
+                        matchedPage === totalMatchedPages
+                          ? darkMode
+                            ? "bg-[#1E1E1E] text-[#666666] cursor-not-allowed"
+                            : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : darkMode
+                          ? "bg-[#242424] text-white hover:bg-[#333333]"
+                          : "bg-gray-200 text-gray-900 hover:bg-gray-300"
+                      }`}
+                    >
+                      Next
+                      <FaChevronRight size={12} />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
           </div>
         </div>
       </main>

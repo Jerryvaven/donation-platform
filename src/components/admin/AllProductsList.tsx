@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   FaBox,
@@ -31,13 +31,15 @@ export default function AllProductsList({
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const isInitialLoad = useRef(true);
 
   useEffect(() => {
     const loadProducts = async () => {
       try {
-        setLoading(true);
+        if (isInitialLoad.current) setLoading(true);
         const response = await fetchProducts();
         setProducts(response.data || []);
+        isInitialLoad.current = false;
       } catch (error) {
         console.error("Error fetching products:", error);
       } finally {
@@ -59,7 +61,7 @@ export default function AllProductsList({
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.5, delay: 1.2 }}
-      className={`rounded-xl p-6 shadow-sm border ${
+      className={`relative rounded-xl p-6 shadow-sm border ${
         darkMode ? "bg-[#242424] border-[#333333]" : "bg-white border-gray-100"
       }`}
     >
@@ -120,7 +122,7 @@ export default function AllProductsList({
       {loading ? (
         <div className="relative">
           {/* Show existing content with overlay spinner */}
-          <div className="space-y-3 max-h-96 overflow-y-auto scrollbar-hide">
+          <div className="space-y-3 max-h-96 overflow-y-auto scrollbar-hide pb-12">
             {filteredProducts.map((product, index) => (
               <motion.div
                 key={product.id}
@@ -219,7 +221,7 @@ export default function AllProductsList({
             : "No products available."}
         </div>
       ) : (
-        <div className="space-y-3 max-h-96 overflow-y-auto scrollbar-hide">
+        <div className="space-y-3 max-h-96 overflow-y-auto scrollbar-hide pb-12">
           {filteredProducts.map((product, index) => (
             <motion.div
               key={product.id}
@@ -305,7 +307,7 @@ export default function AllProductsList({
       )}
 
       <div
-        className={`mt-4 text-sm ${
+        className={`absolute bottom-2 left-6 text-sm ${
           darkMode ? "text-[#808080]" : "text-gray-500"
         }`}
       >

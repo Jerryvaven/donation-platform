@@ -88,38 +88,30 @@ export default function AddProductModal({
       if (editProduct) {
         // Update existing product
         response = await updateProduct(editProduct.id, productData)
-        if (response.success) {
-          setMessage({ type: 'success', text: 'Product updated successfully!' })
-          if (onProductUpdated) {
-            onProductUpdated(response.data)
-          }
+        setMessage({ type: 'success', text: 'Product updated successfully!' })
+        if (onProductUpdated) {
+          onProductUpdated(response.data)
         }
       } else {
         // Add new product
         response = await addProduct(productData)
-        if (response.success) {
-          setMessage({ type: 'success', text: 'Product added successfully!' })
-          onProductAdded(response.data)
-        }
+        setMessage({ type: 'success', text: 'Product added successfully!' })
+        onProductAdded(response.data)
       }
       
-      if (response.success) {
-        // Reset form
-        setNewProductName('')
-        setNewProductCategory('')
-        setNewProductValue('')
-        setNewProductDescription('')
-        setNewProductImageUrl('')
-        setImagePreview('')
-        setUploadMethod('url')
-        
-        setTimeout(() => {
-          setShowAddProductModal(false)
-          setMessage(null)
-        }, 1500)
-      } else {
-        setMessage({ type: 'error', text: response.message || `Failed to ${editProduct ? 'update' : 'add'} product.` })
-      }
+      // Reset form
+      setNewProductName('')
+      setNewProductCategory('')
+      setNewProductValue('')
+      setNewProductDescription('')
+      setNewProductImageUrl('')
+      setImagePreview('')
+      setUploadMethod('url')
+      
+      setTimeout(() => {
+        setShowAddProductModal(false)
+        setMessage(null)
+      }, 1500)
     } catch (error: unknown) {
       console.error(`Error ${editProduct ? 'updating' : 'adding'} product:`, error)
       const errorMessage = error instanceof Error ? error.message : `Failed to ${editProduct ? 'update' : 'add'} product.`

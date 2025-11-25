@@ -103,34 +103,26 @@ export default function AddFireStationModal({
       let response
       if (editStation) {
         response = await updateFireDepartment(editStation.id, stationData)
+        if (onFireStationUpdated) {
+          onFireStationUpdated(response.data)
+        }
       } else {
         response = await addFireDepartment(stationData)
+        onFireStationAdded(response.data)
       }
       
-      if (response.success) {
-        setMessage({ type: 'success', text: editStation ? 'Fire station updated successfully!' : 'Fire station added successfully!' })
-        
-        if (editStation && onFireStationUpdated) {
-          onFireStationUpdated(response.data)
-        } else {
-          onFireStationAdded(response.data)
-        }
-        
-        // Reset form
-        setNewStationName('')
-        setNewStationCity('')
-        setNewStationCounty('')
-        setNewStationAddress('')
-        setNewStationLatitude('')
-        setNewStationLongitude('')
-        
-        setTimeout(() => {
-          setShowAddFireStationModal(false)
-          setMessage(null)
-        }, 1500)
-      } else {
-        setMessage({ type: 'error', text: response.message || `Failed to ${editStation ? 'update' : 'add'} fire station.` })
-      }
+      // Reset form
+      setNewStationName('')
+      setNewStationCity('')
+      setNewStationCounty('')
+      setNewStationAddress('')
+      setNewStationLatitude('')
+      setNewStationLongitude('')
+      
+      setTimeout(() => {
+        setShowAddFireStationModal(false)
+        setMessage(null)
+      }, 1500)
     } catch (error: unknown) {
       console.error(`Error ${editStation ? 'updating' : 'adding'} fire station:`, error)
       const errorMessage = error instanceof Error ? error.message : `Failed to ${editStation ? 'update' : 'add'} fire station.`

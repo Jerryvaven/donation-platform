@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { FaFire, FaSearch, FaPlus, FaEdit, FaTrash, FaMapMarkerAlt, FaSync } from 'react-icons/fa'
 import { fetchFireDepartments } from '@/lib/api-client'
@@ -18,13 +18,15 @@ export default function AllFireStationsList({ darkMode, refreshTrigger, onAddFir
   const [fireStations, setFireStations] = useState<FireDepartment[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
+  const isInitialLoad = useRef(true)
 
   useEffect(() => {
     const loadFireStations = async () => {
       try {
-        setLoading(true)
+        if (isInitialLoad.current) setLoading(true)
         const response = await fetchFireDepartments()
         setFireStations(response.data || [])
+        isInitialLoad.current = false
       } catch (error) {
         console.error('Error fetching fire stations:', error)
       } finally {
@@ -46,7 +48,7 @@ export default function AllFireStationsList({ darkMode, refreshTrigger, onAddFir
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.5, delay: 1.4 }}
-      className={`rounded-xl p-6 shadow-sm border ${
+      className={`relative rounded-xl p-6 shadow-sm border ${
         darkMode ? 'bg-[#242424] border-[#333333]' : 'bg-white border-gray-100'
       }`}
     >
@@ -93,7 +95,7 @@ export default function AllFireStationsList({ darkMode, refreshTrigger, onAddFir
       {loading ? (
         <div className="relative">
           {/* Show existing content with overlay spinner */}
-          <div className="space-y-3 max-h-96 overflow-y-auto scrollbar-hide">
+          <div className="space-y-3 max-h-96 overflow-y-auto scrollbar-hide pb-12">
             {filteredFireStations.map((station, index) => (
               <motion.div
                 key={station.id}
@@ -171,7 +173,7 @@ export default function AllFireStationsList({ darkMode, refreshTrigger, onAddFir
           {searchQuery ? 'No fire stations found matching your search.' : 'No fire stations available.'}
         </div>
       ) : (
-        <div className="space-y-3 max-h-96 overflow-y-auto scrollbar-hide">
+        <div className="space-y-3 max-h-96 overflow-y-auto scrollbar-hide pb-12">
           {filteredFireStations.map((station, index) => (
             <motion.div
               key={station.id}
@@ -238,7 +240,7 @@ export default function AllFireStationsList({ darkMode, refreshTrigger, onAddFir
         </div>
       )}
 
-      <div className={`mt-4 text-sm ${darkMode ? 'text-[#808080]' : 'text-gray-500'}`}>
+      <div className={`absolute bottom-2 left-6 text-sm ${darkMode ? 'text-[#808080]' : 'text-gray-500'}`}>
         Showing {filteredFireStations.length} of {fireStations.length} fire stations
       </div>
       <style jsx>{`
