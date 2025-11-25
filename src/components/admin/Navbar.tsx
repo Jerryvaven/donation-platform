@@ -57,11 +57,18 @@ export default function Navbar({
       <div className="max-w-7xl mx-auto px-6 py-4">
         <div className="flex justify-between items-center">
           <motion.div
-            className="flex items-center gap-3"
+            className="flex items-center gap-4"
             whileHover={{ scale: 1.02 }}
             transition={{ type: "spring", stiffness: 300 }}
           >
-            <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>California Donation Admin Dashboard</h1>
+            <img
+              src="/assets/Dialed & Defend A.png"
+              alt="Dialed & Defend California"
+              className="h-20 w-auto object-contain"
+            />
+            <div>
+              <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>California Donation Admin Dashboard</h1>
+            </div>
           </motion.div>
           <div className="flex items-center gap-3">
             <NotificationIcon
