@@ -269,3 +269,43 @@ export async function fetchCoordinates(address: string) {
   }
   return response.json()
 }
+
+// Admin API functions
+export async function fetchAdmins() {
+  const response = await fetch(`${API_BASE}/admins`)
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.error || 'Failed to fetch admins')
+  }
+  return response.json()
+}
+
+export async function addAdminUser(data: { email: string; password: string }) {
+  const response = await fetch(`${API_BASE}/admins/add-user`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  })
+  
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.error || 'Failed to add admin user')
+  }
+  
+  return response.json()
+}
+
+export async function deleteAdminUser(userId: string) {
+  const response = await fetch(`${API_BASE}/admins/${userId}`, {
+    method: 'DELETE'
+  })
+  
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.error || 'Failed to delete admin user')
+  }
+  
+  return response.json()
+}

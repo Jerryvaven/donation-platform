@@ -27,6 +27,7 @@ import MatchDonationModal from "@/components/admin/MatchDonationModal";
 import AccessDeniedModal from "@/components/admin/minicomponents/AccessDeniedModal";
 import DeleteConfirmModal from "@/components/admin/minicomponents/DeleteConfirmModal";
 import { useDashboard } from "@/hooks/useDashboard";
+import { deleteProduct, deleteFireDepartment } from "@/lib/api-client";
 
 export default function AdminDashboard() {
   const [modalMode, setModalMode] = useState<"add" | "edit" | "view">("add");
@@ -49,6 +50,7 @@ export default function AdminDashboard() {
   const {
     // State
     user,
+    isSuperAdmin,
     stats,
     recentDonors,
     recentActivity,
@@ -127,23 +129,16 @@ export default function AdminDashboard() {
 
     setIsDeleting(true);
     try {
-      const response = await fetch(`/api/products/${deleteItem.item.id}`, {
-        method: "DELETE",
-      });
+      await deleteProduct(deleteItem.item.id);
 
-      if (response.ok) {
-        setMessage({ type: "success", text: "Product deleted successfully!" });
-        refreshProducts();
-      } else {
-        const error = await response.json();
-        setMessage({
-          type: "error",
-          text: error.error || "Failed to delete product",
-        });
-      }
-    } catch (error) {
+      setMessage({ type: "success", text: "Product deleted successfully!" });
+      refreshProducts();
+    } catch (error: any) {
       console.error("Error deleting product:", error);
-      setMessage({ type: "error", text: "Failed to delete product" });
+      setMessage({
+        type: "error",
+        text: error.message || "Failed to delete product",
+      });
     } finally {
       setIsDeleting(false);
       setShowDeleteModal(false);
@@ -156,29 +151,19 @@ export default function AdminDashboard() {
 
     setIsDeleting(true);
     try {
-      const response = await fetch(
-        `/api/fire-departments/${deleteItem.item.id}`,
-        {
-          method: "DELETE",
-        }
-      );
+      await deleteFireDepartment(deleteItem.item.id);
 
-      if (response.ok) {
-        setMessage({
-          type: "success",
-          text: "Fire station deleted successfully!",
-        });
-        refreshFireStations();
-      } else {
-        const error = await response.json();
-        setMessage({
-          type: "error",
-          text: error.error || "Failed to delete fire station",
-        });
-      }
-    } catch (error) {
+      setMessage({
+        type: "success",
+        text: "Fire station deleted successfully!",
+      });
+      refreshFireStations();
+    } catch (error: any) {
       console.error("Error deleting fire station:", error);
-      setMessage({ type: "error", text: "Failed to delete fire station" });
+      setMessage({
+        type: "error",
+        text: error.message || "Failed to delete fire station",
+      });
     } finally {
       setIsDeleting(false);
       setShowDeleteModal(false);
@@ -235,6 +220,7 @@ export default function AdminDashboard() {
         setLastNotificationCheck={setLastNotificationCheck}
         darkMode={darkMode}
         setDarkMode={setDarkMode}
+        userRole={isSuperAdmin ? 'Super Admin' : 'Admin'}
       />
 
       <main className="max-w-7xl mx-auto px-6 py-8">
@@ -487,6 +473,8 @@ export default function AdminDashboard() {
         mode={modalMode}
         donation={currentDonation}
         darkMode={darkMode}
+        productsRefreshTrigger={productsRefreshTrigger}
+        onGlobalProductAdded={refreshProducts}
       />
 
       {/* Match Donation Modal (for quick match) */}

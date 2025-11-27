@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { FaSignOutAlt, FaMoon, FaSun } from 'react-icons/fa'
+import { FaSignOutAlt, FaMoon, FaSun, FaUser } from 'react-icons/fa'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
 import NotificationIcon from './minicomponents/NotificationIcon'
@@ -25,6 +25,7 @@ interface NavbarProps {
   setLastNotificationCheck: (time: string) => void
   darkMode: boolean
   setDarkMode: (darkMode: boolean) => void
+  userRole?: string
 }
 
 export default function Navbar({
@@ -36,7 +37,8 @@ export default function Navbar({
   lastNotificationCheck,
   setLastNotificationCheck,
   darkMode,
-  setDarkMode
+  setDarkMode,
+  userRole = 'Admin'
 }: NavbarProps) {
   const router = useRouter()
   const supabase = createClient()
@@ -62,7 +64,7 @@ export default function Navbar({
             transition={{ type: "spring", stiffness: 300 }}
           >
             <img
-              src="/assets/Dialed & Defend A.png"
+              src="/assets/logo.png"
               alt="Dialed & Defend California"
               className="h-20 w-auto object-contain"
             />
@@ -94,11 +96,23 @@ export default function Navbar({
               {darkMode ? <FaSun size={16} /> : <FaMoon size={16} />}
             </motion.button>
             <div className={`h-8 w-px ${darkMode ? 'bg-[#333333]' : 'bg-gray-300'}`}></div>
+            <motion.button
+              onClick={() => router.push('/admin/profile')}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className={`p-2 rounded-lg transition-colors ${
+                darkMode ? 'bg-[#242424] text-white hover:bg-[#333333]' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+              title="Profile Settings"
+            >
+              <FaUser size={16} />
+            </motion.button>
+            <div className={`h-8 w-px ${darkMode ? 'bg-[#333333]' : 'bg-gray-300'}`}></div>
             <div className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm border ${
               darkMode ? 'bg-[#242424] text-[#B3B3B3] border-[#333333]' : 'bg-gray-50 text-gray-700 border-gray-200'
             }`}>
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="font-medium">Admin</span>
+              <span className="font-medium">{userRole}</span>
             </div>
             <motion.button
               onClick={handleLogout}

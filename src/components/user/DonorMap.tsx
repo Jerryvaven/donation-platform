@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import type { LatLngExpression } from 'leaflet'
 import type { Donor, FireDepartment, ProductDonation } from '@/hooks/useDonors'
 import { fetchFireDepartments } from '@/lib/api-client'
+import { formatCurrency } from '@/lib/utils'
 
 // Dynamically import map components to avoid SSR issues
 const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), { ssr: false })
@@ -220,7 +221,7 @@ export default function DonorMap({ donors, darkMode = false }: DonorMapProps) {
                     {mainStation.hasDonations && mainStation.donationInfo ? (
                       <>
                         <div className="text-green-600 font-semibold mb-1">
-                          Total Value: ${mainStation.donationInfo.totalValue.toFixed(2)}
+                          Total Value: {formatCurrency(mainStation.donationInfo.totalValue, 2)}
                         </div>
                         <div className="text-xs space-y-1">
                           {mainStation.donationInfo.donations.slice(0, 3).map((donation, dIndex) => (
@@ -230,7 +231,7 @@ export default function DonorMap({ donors, darkMode = false }: DonorMapProps) {
                                 From: {donation.donorName}
                               </div>
                               <div className="text-gray-600">
-                                Qty: {donation.quantity} × ${donation.productValue.toFixed(2)}
+                                Qty: {donation.quantity} × {formatCurrency(donation.productValue, 2)}
                               </div>
                             </div>
                           ))}

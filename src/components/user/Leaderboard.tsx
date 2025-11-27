@@ -18,6 +18,7 @@ import {
   FaChevronRight,
 } from "react-icons/fa";
 import type { ProductDonation } from "@/types";
+import { formatCurrency } from "@/lib/utils";
 
 type TimePeriod = "all" | "month" | "week";
 type SortBy = "amount" | "date" | "products";
@@ -191,18 +192,10 @@ export default function Leaderboard() {
     (sum, d) => sum + d.total_products_donated,
     0
   );
-  const totalDonors = sortedDonors.length;
-  const averageDonation =
-    totalDonors > 0 ? Math.round(totalRaised / totalDonors) : 0;
-  const matchingRate =
-    allProductDonations.length > 0
-      ? Math.round((matchedDonations.length / allProductDonations.length) * 100)
-      : 0;
 
   // Animated counters
   const animatedTotal = useCounter(totalRaised);
   const animatedProducts = useCounter(totalProducts);
-  const animatedDonors = useCounter(totalDonors);
   const animatedFDs = useCounter(
     new Set(matchedDonations.map((d) => d.fire_department_id)).size
   );
@@ -266,7 +259,7 @@ export default function Leaderboard() {
         <div className="max-w-7xl mx-auto px-2 sm:px-2 lg:px-2 flex justify-between items-center">
           <div className="flex items-center ">
             <img
-              src="/assets/Dialed & Defend A.png"
+              src="/assets/logo.png"
               alt="Dialed & Defend California"
               className="h-30 w-auto object-contain"
             />
@@ -387,7 +380,7 @@ export default function Leaderboard() {
         </div>
 
         {/* Stats Bar */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
           <div
             className={`p-6 rounded-xl ${
               darkMode
@@ -444,50 +437,6 @@ export default function Leaderboard() {
                 darkMode ? "text-[#B3B3B3]" : "text-gray-600"
               }`}
             >
-              Total Donors
-            </div>
-            <div
-              className={`text-3xl font-bold mt-2 ${
-                darkMode ? "text-white" : "text-gray-900"
-              }`}
-            >
-              {animatedDonors}
-            </div>
-          </div>
-          <div
-            className={`p-6 rounded-xl ${
-              darkMode
-                ? "bg-[#1E1E1E] border border-[#333333]"
-                : "bg-white border border-gray-200"
-            } shadow-sm`}
-          >
-            <div
-              className={`text-sm font-medium ${
-                darkMode ? "text-[#B3B3B3]" : "text-gray-600"
-              }`}
-            >
-              Avg Donation
-            </div>
-            <div
-              className={`text-3xl font-bold mt-2 ${
-                darkMode ? "text-white" : "text-gray-900"
-              }`}
-            >
-              ${averageDonation.toLocaleString()}
-            </div>
-          </div>
-          <div
-            className={`p-6 rounded-xl ${
-              darkMode
-                ? "bg-[#1E1E1E] border border-[#333333]"
-                : "bg-white border border-gray-200"
-            } shadow-sm`}
-          >
-            <div
-              className={`text-sm font-medium ${
-                darkMode ? "text-[#B3B3B3]" : "text-gray-600"
-              }`}
-            >
               Fire Departments
             </div>
             <div
@@ -496,28 +445,6 @@ export default function Leaderboard() {
               }`}
             >
               {animatedFDs}
-            </div>
-          </div>
-          <div
-            className={`p-6 rounded-xl ${
-              darkMode
-                ? "bg-[#1E1E1E] border border-[#333333]"
-                : "bg-white border border-gray-200"
-            } shadow-sm`}
-          >
-            <div
-              className={`text-sm font-medium ${
-                darkMode ? "text-[#B3B3B3]" : "text-gray-600"
-              }`}
-            >
-              Match Rate
-            </div>
-            <div
-              className={`text-3xl font-bold mt-2 ${
-                darkMode ? "text-white" : "text-gray-900"
-              }`}
-            >
-              {matchingRate}%
             </div>
           </div>
         </div>
@@ -652,7 +579,7 @@ export default function Leaderboard() {
                             darkMode ? "text-[#22C55E]" : "text-green-600"
                           }`}
                         >
-                          ${(donation.products?.value || 0) * donation.quantity}
+                          {formatCurrency((donation.products?.value || 0) * donation.quantity)}
                         </div>
                         <div
                           className={`text-xs ${

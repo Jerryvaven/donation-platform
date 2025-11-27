@@ -15,6 +15,7 @@ import type { DashboardStats, RecentProductDonation, ActivityItem, MonthlyData }
 
 export function useDashboard() {
   const [user, setUser] = useState<User | null>(null)
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
   const [stats, setStats] = useState<DashboardStats>({
     totalDonatedValue: 0,
     totalProductsDonated: 0,
@@ -122,18 +123,30 @@ export function useDashboard() {
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+      if (authError || !user) {
         router.push('/admin/login')
       } else {
-        // Check if user is admin
-        const { data: adminData } = await supabase.from('admins').select('*').eq('user_id', user.id).single()
-        if (!adminData) {
+        // Check admin status via API route (server-side)
+        const response = await fetch('/api/admin-auth/check', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ checkAdmin: true }),
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          console.error('Admin check failed:', errorData)
           setShowAccessDeniedModal(true)
           await supabase.auth.signOut()
           router.push('/admin/login')
         } else {
+          const result = await response.json()
           setUser(user)
+          setIsSuperAdmin(result.isSuperAdmin || false)
         }
       }
     }
@@ -336,6 +349,7 @@ export function useDashboard() {
   return {
     // State
     user,
+    isSuperAdmin,
     stats,
     recentDonors,
     recentActivity,

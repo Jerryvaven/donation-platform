@@ -1,4 +1,5 @@
 import type { Donor } from '@/types'
+import { formatCurrency } from '@/lib/utils'
 
 interface DonorListItemProps {
   donor: Donor
@@ -50,7 +51,7 @@ export default function DonorListItem({ donor, index, darkMode }: DonorListItemP
         </div>
         <div className="text-right">
           <div className={`text-lg font-bold ${darkMode ? 'text-[#22C55E]' : 'text-green-600'}`}>
-            ${donor.total_donated_value.toFixed(2)}
+            {formatCurrency(donor.total_donated_value, 2)}
           </div>
           <div className={`text-xs ${darkMode ? 'text-[#808080]' : 'text-gray-500'}`}>
             {donor.total_products_donated} product{donor.total_products_donated !== 1 ? 's' : ''}

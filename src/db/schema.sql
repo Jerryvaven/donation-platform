@@ -60,6 +60,7 @@ CREATE TABLE IF NOT EXISTS product_donations (
 CREATE TABLE IF NOT EXISTS admins (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  is_superadmin BOOLEAN DEFAULT FALSE, -- Whether this admin has superadmin privileges
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -71,6 +72,7 @@ CREATE INDEX IF NOT EXISTS idx_product_donations_date ON product_donations(donat
 CREATE INDEX IF NOT EXISTS idx_product_donations_status ON product_donations(status);
 CREATE INDEX IF NOT EXISTS idx_fire_departments_name ON fire_departments(name);
 CREATE INDEX IF NOT EXISTS idx_products_name ON products(name);
+CREATE INDEX IF NOT EXISTS idx_admins_is_superadmin ON admins(is_superadmin);
 
 -- Row Level Security (RLS)
 DO $$
@@ -134,6 +136,14 @@ CREATE POLICY "Allow read access to fire_departments" ON fire_departments FOR SE
 CREATE POLICY "Allow insert/update to fire_departments for authenticated users" ON fire_departments FOR ALL USING (auth.uid() IS NOT NULL);
 
 CREATE POLICY "Allow read access to admins" ON admins FOR SELECT USING (auth.uid() = user_id);
+
+-- Drop problematic policies that cause infinite recursion
+DROP POLICY IF EXISTS "Allow superadmins to read all admins" ON admins;
+DROP POLICY IF EXISTS "Allow superadmins to insert admins" ON admins;
+DROP POLICY IF EXISTS "Allow superadmins to update admins" ON admins;
+
+-- Simplified admin policies - allow service role to bypass RLS
+-- Client-side operations will use API routes with service role
 
 -- Insert California fire departments
 INSERT INTO fire_departments (name, city, county, address) VALUES

@@ -35,16 +35,18 @@ export default function AdminLogin() {
     if (error) {
       setError(error.message);
     } else {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      const { data: adminData } = await supabase
-        .from("admins")
-        .select("*")
-        .eq("user_id", user!.id)
-        .single();
-      if (!adminData) {
-        setError("Access denied: Admin role required.");
+      // Check admin status via API route (server-side)
+      const response = await fetch('/api/admin-auth/check', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ checkAdmin: true }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        setError(errorData.error || "Access denied: Admin role required.");
         await supabase.auth.signOut();
       } else {
         router.push("/admin/dashboard");

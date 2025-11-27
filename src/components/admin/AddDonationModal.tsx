@@ -32,6 +32,8 @@ interface AddProductDonationModalProps {
   mode?: 'add' | 'edit' | 'view'
   donation?: ProductDonation | null
   darkMode?: boolean
+  productsRefreshTrigger?: number
+  onGlobalProductAdded?: () => void
 }
 
 export default function AddProductDonationModal({
@@ -40,7 +42,9 @@ export default function AddProductDonationModal({
   onDataRefresh,
   mode = 'add',
   donation = null,
-  darkMode = false
+  darkMode = false,
+  productsRefreshTrigger = 0,
+  onGlobalProductAdded
 }: AddProductDonationModalProps) {
   const [donorName, setDonorName] = useState('')
   const [city, setCity] = useState('')
@@ -80,7 +84,7 @@ export default function AddProductDonationModal({
     }
 
     loadData()
-  }, [])
+  }, [productsRefreshTrigger])
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -636,6 +640,7 @@ export default function AddProductDonationModal({
         onProductAdded={(product) => {
           setProducts(prev => [...prev, product])
           setSelectedProduct(product.id)
+          onGlobalProductAdded?.()
         }}
         darkMode={darkMode}
       />

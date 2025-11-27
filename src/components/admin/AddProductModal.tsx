@@ -12,6 +12,7 @@ interface AddProductModalProps {
   setShowAddProductModal: (show: boolean) => void
   onProductAdded: (product: Product) => void
   onProductUpdated?: (product: Product) => void
+  onProductDeleted?: (productId: string) => void
   editProduct?: Product | null
   darkMode?: boolean
 }
@@ -21,6 +22,7 @@ export default function AddProductModal({
   setShowAddProductModal,
   onProductAdded,
   onProductUpdated,
+  onProductDeleted,
   editProduct = null,
   darkMode = false
 }: AddProductModalProps) {

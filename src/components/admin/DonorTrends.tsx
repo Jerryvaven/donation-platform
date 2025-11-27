@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { formatCurrency } from '@/lib/utils'
 
 interface MonthlyData {
   month: string
@@ -31,11 +32,11 @@ export default function DonorTrends({ monthlyData, darkMode }: DonorTrendsProps)
         <div className="flex gap-4 text-sm">
           <div className="flex items-center gap-2">
             <div className={`w-3 h-3 rounded ${darkMode ? 'bg-[#3B82F6]' : 'bg-black'}`}></div>
-            <span className={darkMode ? 'text-[#B3B3B3]' : 'text-gray-600'}>donations {monthlyData.length > 0 ? `- $${monthlyData.reduce((sum, m) => sum + m.donations, 0).toFixed(0)}` : ''}</span>
+            <span className={darkMode ? 'text-[#B3B3B3]' : 'text-gray-600'}>donations {monthlyData.length > 0 ? `- ${formatCurrency(monthlyData.reduce((sum, m) => sum + m.donations, 0), 0)}` : ''}</span>
           </div>
           <div className="flex items-center gap-2">
             <div className={`w-3 h-3 rounded ${darkMode ? 'bg-[#808080]' : 'bg-gray-300'}`}></div>
-            <span className={darkMode ? 'text-[#B3B3B3]' : 'text-gray-600'}>matched {monthlyData.length > 0 ? `- $${monthlyData.reduce((sum, m) => sum + m.matched, 0).toFixed(0)}` : ''}</span>
+            <span className={darkMode ? 'text-[#B3B3B3]' : 'text-gray-600'}>matched {monthlyData.length > 0 ? `- ${formatCurrency(monthlyData.reduce((sum, m) => sum + m.matched, 0), 0)}` : ''}</span>
           </div>
         </div>
       </div>
@@ -72,7 +73,7 @@ export default function DonorTrends({ monthlyData, darkMode }: DonorTrendsProps)
                         darkMode ? 'bg-[#1E1E1E] text-white' : 'bg-gray-900 text-white'
                       }`}
                     >
-                      ${data.donations.toFixed(0)}
+                      {formatCurrency(data.donations, 0)}
                     </div>
                   )}
                 </motion.div>
@@ -90,7 +91,7 @@ export default function DonorTrends({ monthlyData, darkMode }: DonorTrendsProps)
                         darkMode ? 'bg-[#1E1E1E] text-white' : 'bg-gray-700 text-white'
                       }`}
                     >
-                      ${data.matched.toFixed(0)}
+                      {formatCurrency(data.matched, 0)}
                     </div>
                   )}
                 </motion.div>
