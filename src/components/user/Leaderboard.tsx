@@ -130,6 +130,9 @@ export default function Leaderboard() {
             return pdDate > latest ? pdDate : latest;
           }, 0) || 0;
         comparison = aLatestDate - bLatestDate;
+        if (comparison === 0) {
+          comparison = a.name.localeCompare(b.name);
+        }
       }
 
       return sortOrder === "desc" ? -comparison : comparison;
@@ -191,6 +194,9 @@ export default function Leaderboard() {
         comparison = a.quantity - b.quantity;
       } else if (sortBy === "date") {
         comparison = new Date(a.donation_date).getTime() - new Date(b.donation_date).getTime();
+        if (comparison === 0) {
+          comparison = a.donorName.localeCompare(b.donorName);
+        }
       }
 
       return sortOrder === "desc" ? -comparison : comparison;

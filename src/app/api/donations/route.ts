@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
         fire_departments(name),
         donors(name, city, state, address)
       `)
-      .order('donation_date', { ascending: false })
+      .order('created_at', { ascending: false })
 
     if (limit) {
       query = query.limit(limit)

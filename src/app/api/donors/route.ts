@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
           fire_departments (*)
         )
       `)
-      .order('total_donated_value', { ascending: false })
+      .order('created_at', { ascending: false })
 
     const { data, error } = response
 
