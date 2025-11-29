@@ -27,7 +27,7 @@ type SortOrder = "desc" | "asc";
 const ITEMS_PER_PAGE = 10;
 
 export default function Leaderboard() {
-  const { donors, loading, error } = useDonors();
+  const { donors, loading, initialLoading, error } = useDonors();
   const [darkMode, setDarkMode] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [timePeriod, setTimePeriod] = useState<TimePeriod>("all");
@@ -251,6 +251,14 @@ export default function Leaderboard() {
           <div className="text-red-600 text-lg font-semibold mb-2">Error</div>
           <div className="text-gray-600">{error}</div>
         </div>
+      </div>
+    );
+  }
+
+  if (initialLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <LoadingSpinner />
       </div>
     );
   }

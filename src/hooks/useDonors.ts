@@ -9,6 +9,7 @@ export type { Donor, FireDepartment, ProductDonation } from '@/types'
 export const useDonors = () => {
   const [donors, setDonors] = useState<Donor[]>([])
   const [loading, setLoading] = useState(true)
+  const [initialLoading, setInitialLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const loadDonors = async () => {
@@ -23,6 +24,9 @@ export const useDonors = () => {
       setError(err.message || 'Failed to fetch donors')
     } finally {
       setLoading(false)
+      if (initialLoading) {
+        setInitialLoading(false)
+      }
     }
   }
 
@@ -41,5 +45,5 @@ export const useDonors = () => {
     await loadDonors()
   }
 
-  return { donors, loading, error, refetch }
+  return { donors, loading, initialLoading, error, refetch }
 }
