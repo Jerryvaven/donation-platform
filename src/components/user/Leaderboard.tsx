@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useDonors } from "@/hooks/useDonors";
 import LoadingSpinner from "./minicomponents/LoadingSpinner";
 import DonorMap from "./DonorMap";
@@ -140,16 +140,23 @@ export default function Leaderboard() {
 
   // Animated counter hook
   const useCounter = (end: number, duration: number = 2000) => {
-    const [count, setCount] = useState(0);
+    const [count, setCount] = useState(end);
+    const currentCountRef = useRef(end);
 
     useEffect(() => {
+      const start = currentCountRef.current;
+      if (start === end) return;
+
       let startTime: number | null = null;
       const step = (timestamp: number) => {
         if (!startTime) startTime = timestamp;
         const progress = Math.min((timestamp - startTime) / duration, 1);
-        setCount(Math.floor(progress * end));
+        const newCount = Math.floor(start + progress * (end - start));
+        setCount(newCount);
         if (progress < 1) {
           requestAnimationFrame(step);
+        } else {
+          currentCountRef.current = end;
         }
       };
       requestAnimationFrame(step);
@@ -173,14 +180,22 @@ export default function Leaderboard() {
     });
   });
 
-  // Sort donations by date for latest donations list
+  // Sort donations for latest donations list
   const sortedDonationsByDate = useMemo(() => {
-    return [...allProductDonations].sort(
-      (a, b) =>
-        new Date(b.donation_date).getTime() -
-        new Date(a.donation_date).getTime()
-    );
-  }, [allProductDonations]);
+    return [...allProductDonations].sort((a, b) => {
+      let comparison = 0;
+
+      if (sortBy === "amount") {
+        comparison = ((a.products?.value || 0) * a.quantity) - ((b.products?.value || 0) * b.quantity);
+      } else if (sortBy === "products") {
+        comparison = a.quantity - b.quantity;
+      } else if (sortBy === "date") {
+        comparison = new Date(a.donation_date).getTime() - new Date(b.donation_date).getTime();
+      }
+
+      return sortOrder === "desc" ? -comparison : comparison;
+    });
+  }, [allProductDonations, sortBy, sortOrder]);
 
   // Separate matched and unmatched donations
   const matchedDonations = allProductDonations.filter((d) => d.matched);
@@ -228,10 +243,6 @@ export default function Leaderboard() {
     setMatchedPage(1);
     setDonationPage(1);
   }, [searchQuery, timePeriod, sortBy, sortOrder]);
-
-  if (loading) {
-    return <LoadingSpinner message="Loading leaderboard..." />;
-  }
 
   if (error) {
     return (
@@ -529,7 +540,7 @@ export default function Leaderboard() {
                           <img
                             src={donation.products.image_url}
                             alt={donation.products.name}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-contain"
                           />
                         ) : (
                           <div

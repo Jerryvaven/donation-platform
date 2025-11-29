@@ -199,7 +199,7 @@ export default function AdminDashboard() {
               darkMode ? "text-[#3B82F6]" : "text-black"
             }`}
           />
-          <span className="text-lg">Loading...</span>
+          <span className="text-lg">Loading dashboard...</span>
         </div>
       </div>
     );

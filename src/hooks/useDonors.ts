@@ -11,37 +11,34 @@ export const useDonors = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    const loadDonors = async () => {
-      try {
-        setLoading(true)
-        setError(null)
-
-        const response = await fetchDonors()
-        setDonors(response.data || [])
-      } catch (err: any) {
-        console.error('Error fetching donors:', err)
-        setError(err.message || 'Failed to fetch donors')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadDonors()
-  }, [])
-
-  const refetch = async () => {
+  const loadDonors = async () => {
     try {
       setLoading(true)
       setError(null)
+
       const response = await fetchDonors()
       setDonors(response.data || [])
     } catch (err: any) {
-      console.error('Error refetching donors:', err)
+      console.error('Error fetching donors:', err)
       setError(err.message || 'Failed to fetch donors')
     } finally {
       setLoading(false)
     }
+  }
+
+  useEffect(() => {
+    loadDonors()
+
+    // Set up polling every 30 seconds
+    const interval = setInterval(() => {
+      loadDonors()
+    }, 10000)
+
+    return () => clearInterval(interval)
+  }, [])
+
+  const refetch = async () => {
+    await loadDonors()
   }
 
   return { donors, loading, error, refetch }
