@@ -112,10 +112,11 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error: any) {
-    console.error("Exception in add donation API:", error);
+    console.log("Exception in add donation API:", error);
     return NextResponse.json(
       { error: "Internal server error", details: error.message },
       { status: 500 }
     );
   }
 }
+

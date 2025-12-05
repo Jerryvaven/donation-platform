@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ data: coordinates })
   } catch (error: any) {
-    console.error('Exception in fetch-osm API:', error)
+    console.log('Exception in fetch-osm API:', error)
     return NextResponse.json(
       { error: 'Internal server error', details: error.message },
       { status: 500 }

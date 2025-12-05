@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     try {
       adminSupabase = createAdminSupabaseClient()
     } catch (error) {
-      console.error('Admin client creation failed:', error)
+      console.log('Admin client creation failed:', error)
       return NextResponse.json({ error: 'Admin service not configured. Please set SUPABASE_SERVICE_ROLE_KEY environment variable.' }, { status: 500 })
     }
 
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     console.log('Admin data:', adminData)
 
     if (adminCheckError) {
-      console.error('Admin check error details:', adminCheckError)
+      console.log('Admin check error details:', adminCheckError)
       return NextResponse.json({ error: 'Database error checking admin status' }, { status: 500 })
     }
 
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
       })
 
       if (createError) {
-        console.error('Error creating user:', createError)
+        console.log('Error creating user:', createError)
         if (createError.code === 'email_exists' || createError.message?.includes('already registered') || createError.message?.includes('already been registered')) {
           return NextResponse.json({ error: 'User with this email already exists' }, { status: 400 })
         }
@@ -99,12 +99,12 @@ export async function POST(request: NextRequest) {
         })
 
       if (adminInsertError) {
-        console.error('Error adding user to admins table:', adminInsertError)
+        console.log('Error adding user to admins table:', adminInsertError)
         // Try to clean up the created user if admin insertion fails
         try {
           await adminSupabase.auth.admin.deleteUser(newUser.user.id)
         } catch (cleanupError) {
-          console.error('Error cleaning up user after admin insertion failure:', cleanupError)
+          console.log('Error cleaning up user after admin insertion failure:', cleanupError)
         }
         return NextResponse.json({ error: 'Failed to assign admin role to user' }, { status: 500 })
       }
@@ -115,14 +115,14 @@ export async function POST(request: NextRequest) {
         userId: newUser.user.id
       })
     } catch (createError: any) {
-      console.error('Error creating user:', createError)
+      console.log('Error creating user:', createError)
       if (createError.code === 'email_exists' || createError.message?.includes('already registered') || createError.message?.includes('already been registered') || createError.message?.includes('already exists')) {
         return NextResponse.json({ error: 'User with this email already exists' }, { status: 400 })
       }
       return NextResponse.json({ error: 'Failed to create user' }, { status: 500 })
     }
   } catch (error) {
-    console.error('Unexpected error in add-user API:', error)
+    console.log('Unexpected error in add-user API:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

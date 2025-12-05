@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
       adminSupabase = createAdminSupabaseClient()
       console.log('Admin client created successfully')
     } catch (error) {
-      console.error('Admin client creation failed:', error)
+      console.log('Admin client creation failed:', error)
       return NextResponse.json({ error: 'Admin service not configured. Please set SUPABASE_SERVICE_ROLE_KEY environment variable.' }, { status: 500 })
     }
 
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
       .select('user_id')
 
     if (adminError) {
-      console.error('Error fetching admin records:', adminError)
+      console.log('Error fetching admin records:', adminError)
       return NextResponse.json({ error: 'Failed to fetch admin records' }, { status: 500 })
     }
 
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
       const { data: users, error: usersError } = await adminSupabase.auth.admin.listUsers()
       
       if (usersError) {
-        console.error('Error fetching users from admin API:', usersError)
+        console.log('Error fetching users from admin API:', usersError)
         return NextResponse.json({ error: 'Failed to fetch available users' }, { status: 500 })
       }
 
@@ -69,18 +69,18 @@ export async function GET(request: NextRequest) {
 
       console.log('Successfully fetched available users:', userData.length, 'out of', allUsers.length, 'total users')
     } catch (adminError) {
-      console.error('Error accessing admin API:', adminError)
+      console.log('Error accessing admin API:', adminError)
       return NextResponse.json({ error: 'Failed to access admin API. Admin service may not be properly configured.' }, { status: 500 })
     }
 
     if (userError) {
-      console.error('Error fetching available users:', userError)
+      console.log('Error fetching available users:', userError)
       return NextResponse.json({ error: 'Failed to fetch available users' }, { status: 500 })
     }
 
     return NextResponse.json(userData || [])
   } catch (error) {
-    console.error('Unexpected error in available-users API:', error)
+    console.log('Unexpected error in available-users API:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -50,10 +50,11 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ data: monthlyStats })
   } catch (error: any) {
-    console.error('Exception in monthly data API:', error)
+    console.log('Exception in monthly data API:', error)
     return NextResponse.json(
       { error: 'Internal server error', details: error.message },
       { status: 500 }
     )
   }
 }
+

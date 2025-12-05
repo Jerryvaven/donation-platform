@@ -56,7 +56,7 @@ export default function DonorMap({ donors, darkMode = false }: DonorMapProps) {
           setAllFireDepartments(response.data)
         }
       } catch (error) {
-        console.error('Failed to fetch fire departments:', error)
+        console.log('Failed to fetch fire departments:', error)
       }
     }
     loadFireDepartments()

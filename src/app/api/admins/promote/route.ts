@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     try {
       adminSupabase = createAdminSupabaseClient()
     } catch (error) {
-      console.error('Admin client creation failed:', error)
+      console.log('Admin client creation failed:', error)
       return NextResponse.json({ error: 'Admin service not configured. Please set SUPABASE_SERVICE_ROLE_KEY environment variable.' }, { status: 500 })
     }
 
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (checkError && checkError.code !== 'PGRST116') { // PGRST116 is "not found" error
-      console.error('Error checking existing admin:', checkError)
+      console.log('Error checking existing admin:', checkError)
       return NextResponse.json({ error: 'Failed to check user status' }, { status: 500 })
     }
 
@@ -65,13 +65,13 @@ export async function POST(request: NextRequest) {
       })
 
     if (promoteError) {
-      console.error('Error promoting user:', promoteError)
+      console.log('Error promoting user:', promoteError)
       return NextResponse.json({ error: 'Failed to promote user' }, { status: 500 })
     }
 
     return NextResponse.json({ success: true, message: 'User promoted to admin successfully' })
   } catch (error) {
-    console.error('Unexpected error in promote API:', error)
+    console.log('Unexpected error in promote API:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

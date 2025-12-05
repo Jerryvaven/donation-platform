@@ -41,7 +41,7 @@ export default function AllProductsList({
         setProducts(response.data || []);
         isInitialLoad.current = false;
       } catch (error) {
-        console.error("Error fetching products:", error);
+        console.log("Error fetching products:", error);
       } finally {
         setLoading(false);
       }
@@ -325,3 +325,4 @@ export default function AllProductsList({
     </motion.div>
   );
 }
+

@@ -85,10 +85,11 @@ export async function GET(request: NextRequest) {
       }
     })
   } catch (error: any) {
-    console.error('Exception in activity API:', error)
+    console.log('Exception in activity API:', error)
     return NextResponse.json(
       { error: 'Internal server error', details: error.message },
       { status: 500 }
     )
   }
 }
+

@@ -115,7 +115,7 @@ export default function AddProductModal({
         setMessage(null)
       }, 1500)
     } catch (error: unknown) {
-      console.error(`Error ${editProduct ? 'updating' : 'adding'} product:`, error)
+      console.log(`Error ${editProduct ? 'updating' : 'adding'} product:`, error)
       const errorMessage = error instanceof Error ? error.message : `Failed to ${editProduct ? 'update' : 'add'} product.`
       setMessage({ type: 'error', text: errorMessage })
     } finally {

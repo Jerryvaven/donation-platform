@@ -54,7 +54,7 @@ export default function MatchDonationModal({
         const response = await fetchFireDepartments()
         setFireDepartments(response.data || [])
       } catch (error) {
-        console.error('Error fetching fire departments:', error)
+        console.log('Error fetching fire departments:', error)
         setMessage({ type: 'error', text: 'Failed to load fire departments' })
       } finally {
         setLoading(false)

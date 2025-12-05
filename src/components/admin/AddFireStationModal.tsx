@@ -72,7 +72,7 @@ export default function AddFireStationModal({
         setMessage({ type: 'error', text: 'No coordinates found for this address.' })
       }
     } catch (error: unknown) {
-      console.error('Error fetching coordinates:', error)
+      console.log('Error fetching coordinates:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch coordinates.'
       setMessage({ type: 'error', text: errorMessage })
     } finally {
@@ -124,7 +124,7 @@ export default function AddFireStationModal({
         setMessage(null)
       }, 1500)
     } catch (error: unknown) {
-      console.error(`Error ${editStation ? 'updating' : 'adding'} fire station:`, error)
+      console.log(`Error ${editStation ? 'updating' : 'adding'} fire station:`, error)
       const errorMessage = error instanceof Error ? error.message : `Failed to ${editStation ? 'update' : 'add'} fire station.`
       setMessage({ type: 'error', text: errorMessage })
     } finally {
@@ -363,3 +363,4 @@ export default function AddFireStationModal({
     </AnimatePresence>
   )
 }
+

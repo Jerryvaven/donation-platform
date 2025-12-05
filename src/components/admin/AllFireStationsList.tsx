@@ -28,7 +28,7 @@ export default function AllFireStationsList({ darkMode, refreshTrigger, onAddFir
         setFireStations(response.data || [])
         isInitialLoad.current = false
       } catch (error) {
-        console.error('Error fetching fire stations:', error)
+        console.log('Error fetching fire stations:', error)
       } finally {
         setLoading(false)
       }

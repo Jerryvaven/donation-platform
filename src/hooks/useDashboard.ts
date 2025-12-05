@@ -139,7 +139,7 @@ export function useDashboard() {
 
         if (!response.ok) {
           const errorData = await response.json()
-          console.error('Admin check failed:', errorData)
+          console.log('Admin check failed:', errorData)
           setShowAccessDeniedModal(true)
           await supabase.auth.signOut()
           router.push('/admin/login')
@@ -173,7 +173,7 @@ export function useDashboard() {
       const response = await fetchMonthlyData()
       setMonthlyData(response.data)
     } catch (error) {
-      console.error('Error fetching monthly data:', error)
+      console.log('Error fetching monthly data:', error)
     }
   }
 
@@ -183,7 +183,7 @@ export function useDashboard() {
       const response = await fetchStats()
       setStats(response.data)
     } catch (error) {
-      console.error('Error fetching stats:', error)
+      console.log('Error fetching stats:', error)
     } finally {
       setLoading(false)
     }
@@ -214,7 +214,7 @@ export function useDashboard() {
 
       setRecentDonors(formattedDonors)
     } catch (error) {
-      console.error('Error fetching recent donors:', error)
+      console.log('Error fetching recent donors:', error)
     } finally {
       setLoading(false)
     }
@@ -231,7 +231,7 @@ export function useDashboard() {
         setUnreadNotifications(true)
       }
     } catch (error) {
-      console.error('Error fetching activity:', error)
+      console.log('Error fetching activity:', error)
     }
   }
 
@@ -384,3 +384,4 @@ export function useDashboard() {
     refreshData
   }
 }
+

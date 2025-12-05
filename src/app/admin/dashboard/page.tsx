@@ -134,7 +134,7 @@ export default function AdminDashboard() {
       setMessage({ type: "success", text: "Product deleted successfully!" });
       refreshProducts();
     } catch (error: any) {
-      console.error("Error deleting product:", error);
+      console.log("Error deleting product:", error);
       setMessage({
         type: "error",
         text: error.message || "Failed to delete product",
@@ -159,7 +159,7 @@ export default function AdminDashboard() {
       });
       refreshFireStations();
     } catch (error: any) {
-      console.error("Error deleting fire station:", error);
+      console.log("Error deleting fire station:", error);
       setMessage({
         type: "error",
         text: error.message || "Failed to delete fire station",
@@ -545,3 +545,4 @@ export default function AdminDashboard() {
     </div>
   );
 }
+

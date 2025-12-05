@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (insertError) {
-      console.error('Error creating admin record:', insertError)
+      console.log('Error creating admin record:', insertError)
       return NextResponse.json({ error: 'Failed to create admin record' }, { status: 500 })
     }
 
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
       isSuperAdmin: true
     })
   } catch (error) {
-    console.error('Unexpected error in bootstrap:', error)
+    console.log('Unexpected error in bootstrap:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

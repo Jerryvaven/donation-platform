@@ -16,7 +16,7 @@ export default function ConfirmPage() {
         const { data: { session }, error } = await supabase.auth.getSession()
 
         if (error) {
-          console.error('Confirmation error:', error)
+          console.log('Confirmation error:', error)
           router.push('/admin/profile?error=confirmation_failed')
           return
         }
@@ -26,7 +26,7 @@ export default function ConfirmPage() {
         // If successful, redirect to profile with success
         router.push('/admin/profile?confirmed=email')
       } catch (error) {
-        console.error('Unexpected error:', error)
+        console.log('Unexpected error:', error)
         router.push('/admin/profile?error=unexpected')
       }
     }

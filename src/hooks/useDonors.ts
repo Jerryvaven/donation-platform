@@ -20,7 +20,7 @@ export const useDonors = () => {
       const response = await fetchDonors()
       setDonors(response.data || [])
     } catch (err: any) {
-      console.error('Error fetching donors:', err)
+      console.log('Error fetching donors:', err)
       setError(err.message || 'Failed to fetch donors')
     } finally {
       setLoading(false)
@@ -47,3 +47,4 @@ export const useDonors = () => {
 
   return { donors, loading, initialLoading, error, refetch }
 }
+

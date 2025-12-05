@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     try {
       adminSupabase = createAdminSupabaseClient()
     } catch (error) {
-      console.error('Admin client creation failed:', error)
+      console.log('Admin client creation failed:', error)
       return NextResponse.json({ error: 'Admin service not configured. Please contact administrator.' }, { status: 500 })
     }
 
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (adminCheckError || !adminData) {
-      console.error('Admin check failed:', adminCheckError)
+      console.log('Admin check failed:', adminCheckError)
       return NextResponse.json({ error: 'Access denied: Admin role required.' }, { status: 403 })
     }
 
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
       isSuperAdmin: adminData.is_superadmin || false
     })
   } catch (error) {
-    console.error('Unexpected error in admin auth check:', error)
+    console.log('Unexpected error in admin auth check:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

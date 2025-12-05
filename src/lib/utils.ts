@@ -31,3 +31,4 @@ export function formatDate(dateString: string): string {
 export function getTodayDate(): string {
   return new Date().toISOString().split('T')[0]
 }
+

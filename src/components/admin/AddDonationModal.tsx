@@ -79,7 +79,7 @@ export default function AddProductDonationModal({
         setProducts(productsRes.data || [])
         setFireDepartments(fireDepsRes.data || [])
       } catch (error) {
-        console.error('Error loading data:', error)
+        console.log('Error loading data:', error)
       }
     }
 
@@ -697,3 +697,4 @@ export default function AddProductDonationModal({
     </>
   )
 }
+

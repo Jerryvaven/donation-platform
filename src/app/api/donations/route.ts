@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     const { data, error } = await query
 
     if (error) {
-      console.error('Error fetching donations:', error)
+      console.log('Error fetching donations:', error)
       return NextResponse.json(
         { error: 'Failed to fetch donations', details: error.message },
         { status: 500 }
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ data })
   } catch (error: any) {
-    console.error('Exception in donations API:', error)
+    console.log('Exception in donations API:', error)
     return NextResponse.json(
       { error: 'Internal server error', details: error.message },
       { status: 500 }
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) {
-      console.error('Error creating donation:', error)
+      console.log('Error creating donation:', error)
       return NextResponse.json(
         { error: 'Failed to create donation', details: error.message },
         { status: 500 }
@@ -86,10 +86,11 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data, message: 'Donation created successfully' }, { status: 201 })
   } catch (error: any) {
-    console.error('Exception in create donation API:', error)
+    console.log('Exception in create donation API:', error)
     return NextResponse.json(
       { error: 'Internal server error', details: error.message },
       { status: 500 }
     )
   }
 }
+

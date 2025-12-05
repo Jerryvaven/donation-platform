@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
       .order('name')
 
     if (error) {
-      console.error('Error fetching products:', error)
+      console.log('Error fetching products:', error)
       return NextResponse.json(
         { error: 'Failed to fetch products', details: error.message },
         { status: 500 }
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ data })
   } catch (error: any) {
-    console.error('Exception in products API:', error)
+    console.log('Exception in products API:', error)
     return NextResponse.json(
       { error: 'Internal server error', details: error.message },
       { status: 500 }
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) {
-      console.error('Error adding product:', error)
+      console.log('Error adding product:', error)
       return NextResponse.json(
         { error: 'Failed to add product', details: error.message },
         { status: 500 }
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data, message: 'Product added successfully' })
   } catch (error: any) {
-    console.error('Exception in products POST API:', error)
+    console.log('Exception in products POST API:', error)
     return NextResponse.json(
       { error: 'Internal server error', details: error.message },
       { status: 500 }
@@ -106,7 +106,7 @@ export async function PUT(request: NextRequest) {
       .single()
 
     if (error) {
-      console.error('Error updating product:', error)
+      console.log('Error updating product:', error)
       return NextResponse.json(
         { error: 'Failed to update product', details: error.message },
         { status: 500 }
@@ -115,7 +115,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({ data, message: 'Product updated successfully' })
   } catch (error: any) {
-    console.error('Exception in products PUT API:', error)
+    console.log('Exception in products PUT API:', error)
     return NextResponse.json(
       { error: 'Internal server error', details: error.message },
       { status: 500 }
@@ -142,7 +142,7 @@ export async function DELETE(request: NextRequest) {
       .eq('id', id)
 
     if (error) {
-      console.error('Error deleting product:', error)
+      console.log('Error deleting product:', error)
       return NextResponse.json(
         { error: 'Failed to delete product', details: error.message },
         { status: 500 }
@@ -151,10 +151,11 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ message: 'Product deleted successfully' })
   } catch (error: any) {
-    console.error('Exception in products DELETE API:', error)
+    console.log('Exception in products DELETE API:', error)
     return NextResponse.json(
       { error: 'Internal server error', details: error.message },
       { status: 500 }
     )
   }
 }
+

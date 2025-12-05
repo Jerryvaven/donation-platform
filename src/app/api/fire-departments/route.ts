@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
       .order('name')
 
     if (error) {
-      console.error('Error fetching fire departments:', error)
+      console.log('Error fetching fire departments:', error)
       return NextResponse.json(
         { error: 'Failed to fetch fire departments', details: error.message },
         { status: 500 }
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ data })
   } catch (error: any) {
-    console.error('Exception in fire departments API:', error)
+    console.log('Exception in fire departments API:', error)
     return NextResponse.json(
       { error: 'Internal server error', details: error.message },
       { status: 500 }
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) {
-      console.error('Error adding fire department:', error)
+      console.log('Error adding fire department:', error)
       return NextResponse.json(
         { success: false, message: 'Failed to add fire station', details: error.message },
         { status: 500 }
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, data, message: 'Fire station added successfully' })
   } catch (error: any) {
-    console.error('Exception in fire departments POST API:', error)
+    console.log('Exception in fire departments POST API:', error)
     return NextResponse.json(
       { success: false, message: 'Internal server error', details: error.message },
       { status: 500 }
@@ -106,7 +106,7 @@ export async function PUT(request: NextRequest) {
       .single()
 
     if (error) {
-      console.error('Error updating fire department:', error)
+      console.log('Error updating fire department:', error)
       return NextResponse.json(
         { success: false, message: 'Failed to update fire station', details: error.message },
         { status: 500 }
@@ -115,7 +115,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({ success: true, data, message: 'Fire station updated successfully' })
   } catch (error: any) {
-    console.error('Exception in fire departments PUT API:', error)
+    console.log('Exception in fire departments PUT API:', error)
     return NextResponse.json(
       { success: false, message: 'Internal server error', details: error.message },
       { status: 500 }
@@ -142,7 +142,7 @@ export async function DELETE(request: NextRequest) {
       .eq('id', id)
 
     if (error) {
-      console.error('Error deleting fire department:', error)
+      console.log('Error deleting fire department:', error)
       return NextResponse.json(
         { success: false, message: 'Failed to delete fire station', details: error.message },
         { status: 500 }
@@ -151,11 +151,12 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ success: true, message: 'Fire station deleted successfully' })
   } catch (error: any) {
-    console.error('Exception in fire departments DELETE API:', error)
+    console.log('Exception in fire departments DELETE API:', error)
     return NextResponse.json(
       { success: false, message: 'Internal server error', details: error.message },
       { status: 500 }
     )
   }
 }
+
 

@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     const { data, error } = response
 
     if (error) {
-      console.error('Error fetching donors:', error)
+      console.log('Error fetching donors:', error)
       return NextResponse.json(
         { error: 'Failed to fetch donors', details: error.message },
         { status: 500 }
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ data })
   } catch (error: any) {
-    console.error('Exception in donors API:', error)
+    console.log('Exception in donors API:', error)
     return NextResponse.json(
       { error: 'Internal server error', details: error.message },
       { status: 500 }
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) {
-      console.error('Error creating donor:', error)
+      console.log('Error creating donor:', error)
       return NextResponse.json(
         { error: 'Failed to create donor', details: error.message },
         { status: 500 }
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data, message: 'Donor created successfully' }, { status: 201 })
   } catch (error: any) {
-    console.error('Exception in create donor API:', error)
+    console.log('Exception in create donor API:', error)
     return NextResponse.json(
       { error: 'Internal server error', details: error.message },
       { status: 500 }
@@ -110,7 +110,7 @@ export async function PUT(request: NextRequest) {
       .single()
 
     if (error) {
-      console.error('Error updating donor:', error)
+      console.log('Error updating donor:', error)
       return NextResponse.json(
         { error: 'Failed to update donor', details: error.message },
         { status: 500 }
@@ -119,10 +119,11 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({ data, message: 'Donor updated successfully' })
   } catch (error: any) {
-    console.error('Exception in update donor API:', error)
+    console.log('Exception in update donor API:', error)
     return NextResponse.json(
       { error: 'Internal server error', details: error.message },
       { status: 500 }
     )
   }
 }
+

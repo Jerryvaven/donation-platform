@@ -82,7 +82,7 @@ export default function ProfilePage() {
       setAdminUsers(data || [])
       setCurrentPage(1) // Reset to first page when loading admin users
     } catch (error: any) {
-      console.error('Error loading admin users:', error)
+      console.log('Error loading admin users:', error)
       setMessage({ type: 'error', text: 'Failed to load admin users.' })
     } finally {
       setLoadingAdmins(false)
@@ -120,7 +120,7 @@ export default function ProfilePage() {
         setMessage(null)
       }, 5000)
     } catch (error: any) {
-      console.error('Error adding new user:', error)
+      console.log('Error adding new user:', error)
       setMessage({ type: 'error', text: error.message || 'Failed to add new user' })
     } finally {
       setAddingUser(false)
@@ -142,7 +142,7 @@ export default function ProfilePage() {
         setMessage(null)
       }, 5000)
     } catch (error: any) {
-      console.error('Error deleting admin:', error)
+      console.log('Error deleting admin:', error)
       setMessage({ type: 'error', text: error.message || 'Failed to delete admin' })
     } finally {
       setDeletingAdmin(false)
