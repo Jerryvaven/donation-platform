@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
+import { useRouter } from 'next/navigation';
 import { useDonors } from "@/hooks/useDonors";
 import LoadingSpinner from "./minicomponents/LoadingSpinner";
 import DonorMap from "./DonorMap";
+import Navbar from "./Navbar";
 import {
   FaMoon,
   FaSun,
@@ -27,8 +29,16 @@ type SortOrder = "desc" | "asc";
 const ITEMS_PER_PAGE = 10;
 
 export default function Leaderboard() {
+  const router = useRouter();
   const { donors, loading, initialLoading, error } = useDonors();
-  const [darkMode, setDarkMode] = useState(true);
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('darkMode');
+      return saved ? JSON.parse(saved) : true;
+    }
+    return true;
+  });
+  const [mounted, setMounted] = useState(false)
   const [searchQuery, setSearchQuery] = useState("");
   const [timePeriod, setTimePeriod] = useState<TimePeriod>("all");
   const [sortBy, setSortBy] = useState<SortBy>("date");
@@ -38,16 +48,27 @@ export default function Leaderboard() {
   const [matchedPage, setMatchedPage] = useState(1);
   const [donationPage, setDonationPage] = useState(1);
 
+  // Save dark mode to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('darkMode', JSON.stringify(darkMode));
+  }, [darkMode]);
+
   // Apply dark mode to the entire page
   useEffect(() => {
-    if (darkMode) {
-      document.body.style.backgroundColor = "#121212";
-      document.documentElement.style.backgroundColor = "#121212";
-    } else {
-      document.body.style.backgroundColor = "";
-      document.documentElement.style.backgroundColor = "";
+    if (mounted) {
+      if (darkMode) {
+        document.body.style.backgroundColor = "#121212";
+        document.documentElement.style.backgroundColor = "#121212";
+      } else {
+        document.body.style.backgroundColor = "";
+        document.documentElement.style.backgroundColor = "";
+      }
     }
-  }, [darkMode]);
+  }, [darkMode, mounted]);
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Filter donors by time period
   const filteredByTime = useMemo(() => {
@@ -250,6 +271,10 @@ export default function Leaderboard() {
     setDonationPage(1);
   }, [searchQuery, timePeriod, sortBy, sortOrder]);
 
+  if (!mounted) {
+    return null
+  }
+
   if (error) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -275,44 +300,10 @@ export default function Leaderboard() {
         darkMode ? "bg-[#121212]" : "bg-gray-50"
       }`}
     >
-      {/* Header */}
-      <header
-        className={`shadow ${
-          darkMode ? "bg-[#1E1E1E] border-b border-[#333333]" : "bg-white"
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-2 sm:px-2 lg:px-2 flex justify-between items-center">
-          <div className="flex items-center ">
-            <img
-              src="/assets/logo.png"
-              alt="Dialed & Defend California"
-              className="h-30 w-auto object-contain"
-            />
-            <p
-              className={`text-md mt-6 ${
-                darkMode ? "text-[#B3B3B3]" : "text-gray-600"
-              }`}
-            >
-              Supporting the Strength and Recovery of California's First
-              Responders
-            </p>
-          </div>
-          {/* Dark Mode Toggle */}
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            className={`p-3 rounded-full shadow-lg transition-colors ${
-              darkMode
-                ? "bg-[#242424] text-white hover:bg-[#333333]"
-                : "bg-black text-white hover:bg-gray-800"
-            }`}
-            title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-          >
-            {darkMode ? <FaSun size={20} /> : <FaMoon size={20} />}
-          </button>
-        </div>
-      </header>
+      <Navbar darkMode={darkMode} setDarkMode={setDarkMode} />
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8 space-y-6">
+        <h1 className={`text-3xl font-bold mb-6 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Leaderboard</h1>
         {/* Search and Filters Bar */}
         <div
           className={`p-4 rounded-xl ${
