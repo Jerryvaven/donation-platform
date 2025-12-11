@@ -3,7 +3,7 @@
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Products table (King Sauna, Barrel Sauna, Pro Pod, Air Plunge, etc.)
+-- Products table (FOR DONATIONS - King Sauna, Barrel Sauna, Pro Pod, Air Plunge, etc.)
 CREATE TABLE IF NOT EXISTS products (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name TEXT NOT NULL, -- e.g., "King Sauna", "Barrel Sauna", "Pro Pod", "Air Plunge"
@@ -12,6 +12,53 @@ CREATE TABLE IF NOT EXISTS products (
   description TEXT,
   image_url TEXT, -- URL to product image or base64 data URL
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- E-commerce Products table (FOR SELLING - Saunas and Cold Plunges)
+CREATE TABLE IF NOT EXISTS ecommerce_products (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL, -- e.g., "King Sauna Elite", "Pro Pod XL"
+  category TEXT NOT NULL, -- "Sauna" or "Cold Plunge"
+  price DECIMAL(10,2) NOT NULL, -- Selling price
+  description TEXT, -- Short description
+  product_description TEXT, -- Detailed product description
+  health_benefits_description TEXT, -- Health benefits description
+  
+  -- Features (shown on product cards - max 5)
+  card_features TEXT[], -- Array of features shown on product cards (max 5)
+  
+  -- Detailed features (shown in detail modal)
+  features TEXT[], -- Array of detailed product features
+  benefits TEXT[], -- Array of product benefits
+  specifications_array TEXT[], -- Array of specifications
+  
+  -- Additional product info
+  specifications_data JSONB, -- Structured product specifications
+  feature_slides JSONB, -- Array of feature slides with title, description, image
+  questions_answers JSONB, -- Array of Q&A objects
+  
+  -- Images
+  image_url TEXT, -- Primary product image
+  gallery_images TEXT[], -- Array of additional product images (max 5)
+  specifications_image TEXT, -- Technical specifications diagram image
+  dimensions_image TEXT, -- Product dimensions diagram image
+  
+  -- Inventory
+  stock_quantity INT DEFAULT 0, -- Inventory count
+  is_available BOOLEAN DEFAULT true, -- Whether product is available for purchase
+  sku TEXT UNIQUE, -- Stock Keeping Unit
+  
+  -- Product details
+  weight DECIMAL(10,2), -- Product weight in lbs
+  dimensions TEXT, -- Dimensions (e.g., "72x36x42")
+  warranty_info TEXT, -- Warranty information
+  shipping_info TEXT, -- Shipping details
+  
+  -- Included accessories (array of objects with title, image, description)
+  included_accessories JSONB, -- Array of accessory objects
+  
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Fire Departments table
@@ -73,6 +120,24 @@ CREATE INDEX IF NOT EXISTS idx_product_donations_status ON product_donations(sta
 CREATE INDEX IF NOT EXISTS idx_fire_departments_name ON fire_departments(name);
 CREATE INDEX IF NOT EXISTS idx_products_name ON products(name);
 CREATE INDEX IF NOT EXISTS idx_admins_is_superadmin ON admins(is_superadmin);
+CREATE INDEX IF NOT EXISTS idx_ecommerce_products_category ON ecommerce_products(category);
+CREATE INDEX IF NOT EXISTS idx_ecommerce_products_sku ON ecommerce_products(sku);
+CREATE INDEX IF NOT EXISTS idx_ecommerce_products_is_available ON ecommerce_products(is_available);
+
+-- Order System Indexes
+CREATE INDEX IF NOT EXISTS idx_orders_email ON orders(email);
+CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
+CREATE INDEX IF NOT EXISTS idx_orders_payment_status ON orders(payment_status);
+CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
+CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id);
+CREATE INDEX IF NOT EXISTS idx_order_items_product_id ON order_items(ecommerce_product_id);
+CREATE INDEX IF NOT EXISTS idx_order_payments_order_id ON order_payments(order_id);
+CREATE INDEX IF NOT EXISTS idx_order_payments_transaction_id ON order_payments(transaction_id);
+CREATE INDEX IF NOT EXISTS idx_coupons_code ON coupons(code);
+CREATE INDEX IF NOT EXISTS idx_coupons_is_active ON coupons(is_active);
+CREATE INDEX IF NOT EXISTS idx_coupon_usage_email ON coupon_usage(email);
+CREATE INDEX IF NOT EXISTS idx_coupon_usage_coupon_id ON coupon_usage(coupon_id);
 
 -- Row Level Security (RLS)
 DO $$
@@ -110,6 +175,13 @@ BEGIN
     END IF;
 END $$;
 
+DO $$
+BEGIN
+    IF NOT (SELECT relrowsecurity FROM pg_class WHERE relname = 'ecommerce_products' AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public')) THEN
+        ALTER TABLE ecommerce_products ENABLE ROW LEVEL SECURITY;
+    END IF;
+END $$;
+
 -- Drop existing policies to avoid conflicts
 DROP POLICY IF EXISTS "Allow insert/update to donors for admins" ON donors;
 DROP POLICY IF EXISTS "Allow read access to donors" ON donors;
@@ -136,6 +208,9 @@ CREATE POLICY "Allow read access to fire_departments" ON fire_departments FOR SE
 CREATE POLICY "Allow insert/update to fire_departments for authenticated users" ON fire_departments FOR ALL USING (auth.uid() IS NOT NULL);
 
 CREATE POLICY "Allow read access to admins" ON admins FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Allow read access to ecommerce_products" ON ecommerce_products FOR SELECT USING (true);
+CREATE POLICY "Allow insert/update to ecommerce_products for authenticated users" ON ecommerce_products FOR ALL USING (auth.uid() IS NOT NULL);
 
 -- Drop problematic policies that cause infinite recursion
 DROP POLICY IF EXISTS "Allow superadmins to read all admins" ON admins;
@@ -369,3 +444,201 @@ UPDATE fire_departments SET latitude = '38.8971', longitude = '-121.0762' WHERE 
 UPDATE fire_departments SET latitude = '38.7296', longitude = '-120.7989' WHERE city = 'Placerville';
 UPDATE fire_departments SET latitude = '40.5865', longitude = '-122.3917' WHERE city = 'Redding';
 UPDATE fire_departments SET latitude = '39.7285', longitude = '-121.8375' WHERE city = 'Chico';
+
+-- ============================================================================
+-- E-COMMERCE ORDER SYSTEM TABLES
+-- ============================================================================
+
+-- Orders table (for e-commerce purchases)
+CREATE TABLE IF NOT EXISTS orders (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  
+  -- Customer Information
+  email TEXT NOT NULL,
+  first_name TEXT NOT NULL,
+  last_name TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  
+  -- Shipping Address
+  shipping_address TEXT NOT NULL,
+  shipping_city TEXT NOT NULL,
+  shipping_state TEXT NOT NULL,
+  shipping_zip_code TEXT NOT NULL,
+  shipping_country TEXT DEFAULT 'United States',
+  
+  -- Billing Address (optional - if different from shipping)
+  billing_address TEXT,
+  billing_city TEXT,
+  billing_state TEXT,
+  billing_zip_code TEXT,
+  billing_country TEXT,
+  same_as_shipping BOOLEAN DEFAULT true,
+  
+  -- Order Totals
+  subtotal DECIMAL(12,2) NOT NULL, -- Sum of all items before taxes/shipping
+  shipping_cost DECIMAL(12,2) DEFAULT 0, -- Shipping cost
+  tax DECIMAL(12,2) DEFAULT 0, -- Tax amount
+  discount_amount DECIMAL(12,2) DEFAULT 0, -- Discount from coupon
+  total DECIMAL(12,2) NOT NULL, -- Final total (subtotal + shipping + tax - discount)
+  
+  -- Coupon/Discount
+  coupon_code TEXT,
+  coupon_discount_type TEXT, -- 'percentage' or 'fixed'
+  coupon_discount_value DECIMAL(10,2),
+  
+  -- Order Status
+  status TEXT DEFAULT 'PENDING', -- 'PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'
+  payment_status TEXT DEFAULT 'PENDING', -- 'PENDING', 'COMPLETED', 'FAILED', 'REFUNDED'
+  payment_method TEXT, -- 'credit_card', 'paypal', 'stripe', etc.
+  stripe_session_id TEXT, -- Stripe checkout session ID for payment verification
+  
+  -- Tracking & Fulfillment
+  tracking_number TEXT,
+  shipping_provider TEXT, -- 'FedEx', 'UPS', 'USPS', etc.
+  shipped_date TIMESTAMP WITH TIME ZONE,
+  delivered_date TIMESTAMP WITH TIME ZONE,
+  
+  -- Notes
+  customer_notes TEXT, -- Special instructions from customer
+  internal_notes TEXT, -- Internal admin notes
+  
+  -- Metadata
+  user_id UUID, -- Link to auth user (optional for guest checkout)
+  user_agent TEXT, -- Browser info for analytics
+  ip_address TEXT, -- Customer IP for security
+  
+  -- Timestamps
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Order Items table (products in each order)
+CREATE TABLE IF NOT EXISTS order_items (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  
+  -- Product Information (snapshot at time of purchase)
+  ecommerce_product_id UUID REFERENCES ecommerce_products(id) ON DELETE SET NULL,
+  product_name TEXT NOT NULL,
+  product_sku TEXT,
+  
+  -- Pricing
+  price_per_unit DECIMAL(10,2) NOT NULL, -- Price at time of purchase
+  quantity INT NOT NULL,
+  line_total DECIMAL(12,2) NOT NULL, -- price_per_unit * quantity
+  
+  -- Product Details (for reference)
+  product_image_url TEXT,
+  product_category TEXT, -- 'Sauna' or 'Cold Plunge'
+  
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Order Payments table (track payment transactions)
+CREATE TABLE IF NOT EXISTS order_payments (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  
+  -- Payment Details
+  payment_method TEXT NOT NULL, -- 'stripe', 'paypal', 'credit_card', etc.
+  amount DECIMAL(12,2) NOT NULL,
+  currency TEXT DEFAULT 'USD',
+  
+  -- Transaction Info
+  transaction_id TEXT UNIQUE, -- External payment gateway ID (stripe charge ID, etc.)
+  status TEXT NOT NULL, -- 'pending', 'succeeded', 'failed', 'refunded'
+  
+  -- Response from Payment Gateway
+  payment_response JSONB, -- Store full response from payment provider
+  
+  -- Refund Info
+  refund_id TEXT,
+  refund_amount DECIMAL(12,2),
+  refund_reason TEXT,
+  refund_status TEXT, -- 'pending', 'succeeded', 'failed'
+  
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Coupons/Discounts table
+CREATE TABLE IF NOT EXISTS coupons (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  code TEXT UNIQUE NOT NULL,
+  description TEXT,
+  
+  -- Discount Type
+  discount_type TEXT NOT NULL, -- 'percentage' or 'fixed_amount'
+  discount_value DECIMAL(10,2) NOT NULL,
+  
+  -- Conditions
+  minimum_purchase DECIMAL(10,2), -- Minimum order amount to use coupon
+  maximum_uses INT, -- Total times coupon can be used
+  maximum_uses_per_customer INT, -- Times per customer
+  
+  -- Valid Period
+  valid_from DATE,
+  valid_until DATE,
+  
+  -- Usage Tracking
+  used_count INT DEFAULT 0,
+  
+  -- Status
+  is_active BOOLEAN DEFAULT true,
+  
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Coupon Usage Tracking
+CREATE TABLE IF NOT EXISTS coupon_usage (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  coupon_id UUID NOT NULL REFERENCES coupons(id) ON DELETE CASCADE,
+  order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  email TEXT NOT NULL, -- Customer email
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ============================================================================
+-- ROW LEVEL SECURITY FOR ORDER SYSTEM
+-- ============================================================================
+
+-- Enable RLS on order tables
+ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE order_payments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE coupons ENABLE ROW LEVEL SECURITY;
+ALTER TABLE coupon_usage ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies to avoid conflicts
+DROP POLICY IF EXISTS "Allow read access to orders" ON orders;
+DROP POLICY IF EXISTS "Allow insert/update to orders for authenticated users" ON orders;
+DROP POLICY IF EXISTS "Allow read access to order_items" ON order_items;
+DROP POLICY IF EXISTS "Allow insert/update to order_items for authenticated users" ON order_items;
+DROP POLICY IF EXISTS "Allow read access to order_payments" ON order_payments;
+DROP POLICY IF EXISTS "Allow insert/update to order_payments for authenticated users" ON order_payments;
+DROP POLICY IF EXISTS "Allow read access to coupons" ON coupons;
+DROP POLICY IF EXISTS "Allow insert/update to coupons for authenticated users" ON coupons;
+DROP POLICY IF EXISTS "Allow read access to coupon_usage" ON coupon_usage;
+DROP POLICY IF EXISTS "Allow insert/update to coupon_usage for authenticated users" ON coupon_usage;
+
+-- Orders: Allow read for authenticated users, allow insert/update for authenticated users
+CREATE POLICY "Allow read access to orders" ON orders FOR SELECT USING (auth.uid() IS NOT NULL OR true);
+CREATE POLICY "Allow insert/update to orders for authenticated users" ON orders FOR ALL USING (auth.uid() IS NOT NULL OR true);
+
+-- Order Items: Allow read/write for authenticated users
+CREATE POLICY "Allow read access to order_items" ON order_items FOR SELECT USING (true);
+CREATE POLICY "Allow insert/update to order_items for authenticated users" ON order_items FOR ALL USING (auth.uid() IS NOT NULL OR true);
+
+-- Order Payments: Allow read/write for authenticated users
+CREATE POLICY "Allow read access to order_payments" ON order_payments FOR SELECT USING (auth.uid() IS NOT NULL OR true);
+CREATE POLICY "Allow insert/update to order_payments for authenticated users" ON order_payments FOR ALL USING (auth.uid() IS NOT NULL OR true);
+
+-- Coupons: Allow read for everyone, write for authenticated users
+CREATE POLICY "Allow read access to coupons" ON coupons FOR SELECT USING (true);
+CREATE POLICY "Allow insert/update to coupons for authenticated users" ON coupons FOR ALL USING (auth.uid() IS NOT NULL);
+
+-- Coupon Usage: Allow read/write for authenticated users
+CREATE POLICY "Allow read access to coupon_usage" ON coupon_usage FOR SELECT USING (true);
+CREATE POLICY "Allow insert/update to coupon_usage for authenticated users" ON coupon_usage FOR ALL USING (auth.uid() IS NOT NULL OR true);
